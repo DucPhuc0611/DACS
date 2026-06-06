@@ -54,6 +54,7 @@
             <button onclick="chuyenTab('bookings')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-bookings">📝 Quản Lý Lưu Trú</button>
             <button onclick="chuyenTab('dining')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-dining">🍽️ Quản Lý Ẩm Thực</button>
             <button onclick="chuyenTab('events')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-events">🎉 Quản Lý Sự Kiện</button>
+            <button onclick="chuyenTab('technical')" class="role-letan role-kythuat role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-technical">🛠️ Kỹ Thuật</button>
             <button onclick="chuyenTab('customers')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-customers">👥 Khách Hàng</button>
         </nav>
 
@@ -78,7 +79,7 @@
 
         <div class="p-8 flex-1 overflow-y-auto">
             <div id="tab-dashboard" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-7 gap-4">
                     <div class="bg-white border border-gray-200 shadow-sm rounded p-4">
                         <p class="text-xs uppercase tracking-widest text-gray-400 font-bold">Tổng phòng</p>
                         <p id="stat-total-rooms" class="text-3xl font-black text-dark mt-2">0</p>
@@ -103,9 +104,13 @@
                         <p class="text-xs uppercase tracking-widest text-gray-400 font-bold">Khách hàng</p>
                         <p id="stat-customers" class="text-3xl font-black text-dark mt-2">0</p>
                     </div>
+                    <div class="bg-white border border-red-200 shadow-sm rounded p-4">
+                        <p class="text-xs uppercase tracking-widest text-red-600 font-bold">Sự cố kỹ thuật</p>
+                        <p id="stat-open-incidents" class="text-3xl font-black text-red-700 mt-2">0</p>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                     <section class="bg-white shadow rounded p-6">
                         <div class="flex justify-between items-center border-b pb-3 mb-4">
                             <h3 class="text-lg font-bold text-dark">Đặt phòng mới nhất</h3>
@@ -119,6 +124,13 @@
                             <button onclick="chuyenTab('dining')" class="role-letan role-admin text-xs font-bold text-blue-600 hover:text-blue-800 hidden">Xem dịch vụ</button>
                         </div>
                         <div id="dashboard-recent-services" class="space-y-3 text-sm"></div>
+                    </section>
+                    <section class="bg-white shadow rounded p-6">
+                        <div class="flex justify-between items-center border-b pb-3 mb-4">
+                            <h3 class="text-lg font-bold text-dark">Sự cố kỹ thuật</h3>
+                            <button onclick="chuyenTab('technical')" class="role-letan role-kythuat role-admin text-xs font-bold text-blue-600 hover:text-blue-800 hidden">Xem kỹ thuật</button>
+                        </div>
+                        <div id="dashboard-recent-incidents" class="space-y-3 text-sm"></div>
                     </section>
                 </div>
             </div>
@@ -187,6 +199,63 @@
                         <tbody id="table-events"></tbody>
                     </table>
                 </div>
+            </div>
+
+            <div id="tab-technical" class="hidden space-y-6">
+                <section class="role-letan role-admin hidden bg-white shadow rounded p-6">
+                    <h3 class="text-lg font-bold mb-4 text-dark border-b pb-2">Lễ tân báo cáo sự cố cho kỹ thuật</h3>
+                    <form id="incident-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm" onsubmit="taoBaoCaoSuCo(event)">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Phòng / khu vực *</label>
+                            <select id="incident-room" required class="w-full border border-gray-200 p-3 rounded outline-none focus:border-gold bg-white">
+                                <option value="">Chọn phòng</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Nhóm sự cố *</label>
+                            <select id="incident-category" required class="w-full border border-gray-200 p-3 rounded outline-none focus:border-gold bg-white">
+                                <option value="Điện">Điện</option>
+                                <option value="Nước">Nước</option>
+                                <option value="Điều hòa">Điều hòa</option>
+                                <option value="Thiết bị phòng">Thiết bị phòng</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Mức độ *</label>
+                            <select id="incident-priority" required class="w-full border border-gray-200 p-3 rounded outline-none focus:border-gold bg-white">
+                                <option value="Cao">Cao</option>
+                                <option value="Trung bình">Trung bình</option>
+                                <option value="Thấp">Thấp</option>
+                            </select>
+                        </div>
+                        <div class="md:row-span-2">
+                            <label class="block text-xs text-gray-500 mb-1">Mô tả sự cố *</label>
+                            <textarea id="incident-note" rows="4" required class="w-full h-[108px] border border-gray-200 p-3 rounded outline-none focus:border-gold resize-none" placeholder="Ví dụ: Máy lạnh phòng P203 không lạnh, khách yêu cầu kiểm tra gấp."></textarea>
+                        </div>
+                        <button type="submit" class="md:col-span-3 bg-dark text-white uppercase tracking-widest text-xs font-bold py-3 rounded hover:bg-gold transition">Gửi Báo Cáo Kỹ Thuật</button>
+                    </form>
+                </section>
+
+                <section class="bg-white shadow rounded p-6">
+                    <h3 class="text-lg font-bold mb-4 text-dark border-b pb-2">Luồng xử lý sự cố kỹ thuật</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm min-w-[1100px]">
+                            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                                <tr>
+                                    <th class="p-3">Mã SC</th>
+                                    <th class="p-3">Phòng / Khu vực</th>
+                                    <th class="p-3">Sự Cố</th>
+                                    <th class="p-3">Người Báo</th>
+                                    <th class="p-3">Kỹ Thuật</th>
+                                    <th class="p-3">Trạng Thái</th>
+                                    <th class="p-3">Nghiệp Vụ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-incidents"></tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
 
             <div id="tab-customers" class="hidden bg-white shadow rounded p-6">

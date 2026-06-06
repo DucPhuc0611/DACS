@@ -12,6 +12,12 @@ const SERVICE_RECEIVED = 'Đã tiếp nhận';
 const SERVICE_CONFIRMED = 'Đã xác nhận';
 const SERVICE_DONE = 'Đã hoàn tất';
 const SERVICE_CANCELLED = 'Đã hủy';
+const INCIDENT_REPORTED = 'Lễ tân đã báo kỹ thuật';
+const INCIDENT_MANAGER_REPORTED = 'Kỹ thuật đã báo quản lý';
+const INCIDENT_APPROVED = 'Quản lý đã duyệt sửa';
+const INCIDENT_REPAIRING = 'Đang sửa chữa';
+const INCIDENT_FIXED = 'Kỹ thuật báo đã sửa xong';
+const INCIDENT_DONE = 'Quản lý xác nhận hoàn tất';
 
 let currentStaff = null;
 let activeTab = 'dashboard';
@@ -108,6 +114,7 @@ function initSharedDB() {
     if (!localStorage.getItem('DichVuAmThuc')) luuDuLieu('DichVuAmThuc', DEFAULT_DINING_SERVICES);
     if (!localStorage.getItem('GoiSuKien')) luuDuLieu('GoiSuKien', DEFAULT_EVENT_PACKAGES);
     if (!localStorage.getItem('YeuCauDichVu')) luuDuLieu('YeuCauDichVu', []);
+    if (!localStorage.getItem('SuCoKyThuat')) luuDuLieu('SuCoKyThuat', []);
 
     dongBoDanhSachTheoKhoa('KhachHang', DEFAULT_CUSTOMERS, 'MaKH');
     dongBoDanhSachTheoKhoa('LoaiPhong', DEFAULT_ROOM_TYPES, 'MaLoaiPhong');
@@ -152,6 +159,19 @@ function coQuyenLeTan() {
     return currentStaff && ['letan', 'admin'].includes(currentStaff.ChucDanh);
 }
 
+function coQuyenKyThuat() {
+    return currentStaff && ['kythuat', 'admin'].includes(currentStaff.ChucDanh);
+}
+
+function coQuyenQuanLy() {
+    return currentStaff?.ChucDanh === 'admin';
+}
+
+function formatNgayGio(value) {
+    if (!value) return '---';
+    return new Date(value).toLocaleString('vi-VN');
+}
+
 function mauTrangThaiPhong(status) {
     if (status === ROOM_READY) return { card: 'bg-green-50 border-green-400 text-green-700', icon: '✨' };
     if (status === ROOM_USING) return { card: 'bg-red-50 border-red-400 text-red-700', icon: '🛌' };
@@ -168,7 +188,13 @@ function mauBadge(status) {
         [SERVICE_RECEIVED]: 'bg-amber-100 text-amber-700',
         [SERVICE_CONFIRMED]: 'bg-blue-100 text-blue-700',
         [SERVICE_DONE]: 'bg-green-100 text-green-700',
-        [SERVICE_CANCELLED]: 'bg-red-100 text-red-700'
+        [SERVICE_CANCELLED]: 'bg-red-100 text-red-700',
+        [INCIDENT_REPORTED]: 'bg-amber-100 text-amber-700',
+        [INCIDENT_MANAGER_REPORTED]: 'bg-blue-100 text-blue-700',
+        [INCIDENT_APPROVED]: 'bg-indigo-100 text-indigo-700',
+        [INCIDENT_REPAIRING]: 'bg-orange-100 text-orange-700',
+        [INCIDENT_FIXED]: 'bg-purple-100 text-purple-700',
+        [INCIDENT_DONE]: 'bg-green-100 text-green-700'
     };
 
     return map[status] || 'bg-gray-100 text-gray-600';
@@ -238,7 +264,7 @@ function apDungPhanQuyen() {
 }
 
 function chuyenTab(tabName) {
-    const tabs = ['dashboard', 'rooms', 'bookings', 'dining', 'events', 'customers'];
+    const tabs = ['dashboard', 'rooms', 'bookings', 'dining', 'events', 'technical', 'customers'];
     if (!tabs.includes(tabName)) return;
 
     activeTab = tabName;
@@ -258,6 +284,7 @@ function chuyenTab(tabName) {
         bookings: 'Hồ Sơ Lưu Trú',
         dining: 'Quản Lý Ẩm Thực',
         events: 'Quản Lý Sự Kiện',
+        technical: 'Quản Lý Kỹ Thuật',
         customers: 'Hồ Sơ Khách Hàng'
     };
     document.getElementById('page-title').innerText = titles[tabName];
@@ -267,6 +294,7 @@ function chuyenTab(tabName) {
     if (tabName === 'bookings') veBangDatPhong();
     if (tabName === 'dining') veBangYeuCauDichVu('AM_THUC', 'table-dining');
     if (tabName === 'events') veBangYeuCauDichVu('SU_KIEN', 'table-events');
+    if (tabName === 'technical') veBangSuCoKyThuat();
     if (tabName === 'customers') veBangKhachHang();
 }
 
@@ -301,9 +329,11 @@ function layThongKe() {
     const bookings = docDuLieu('PhieuDatPhong');
     const serviceRequests = docDuLieu('YeuCauDichVu');
     const customers = docDuLieu('KhachHang');
+    const incidents = docDuLieu('SuCoKyThuat');
 
     const activeBookings = bookings.filter(booking => [BOOKING_PENDING, BOOKING_CHECKED_IN].includes(booking.TrangThai));
     const pendingServices = serviceRequests.filter(request => request.TrangThai === SERVICE_RECEIVED);
+    const openIncidents = incidents.filter(incident => incident.TrangThai !== INCIDENT_DONE);
     const expectedRevenue = bookings
         .filter(booking => booking.TrangThai !== BOOKING_CANCELLED)
         .reduce((sum, booking) => sum + Number(booking.TongTienDuKien || 0), 0);
@@ -316,7 +346,8 @@ function layThongKe() {
         pendingBookings: activeBookings.length,
         pendingServices: pendingServices.length,
         expectedRevenue,
-        customers: customers.length
+        customers: customers.length,
+        openIncidents: openIncidents.length
     };
 }
 
@@ -329,9 +360,11 @@ function veDashboard() {
     document.getElementById('stat-pending-services').innerText = stats.pendingServices;
     document.getElementById('stat-expected-revenue').innerText = formatTien(stats.expectedRevenue);
     document.getElementById('stat-customers').innerText = stats.customers;
+    document.getElementById('stat-open-incidents').innerText = stats.openIncidents;
 
     veDashboardBookings();
     veDashboardServices();
+    veDashboardIncidents();
 }
 
 function veDashboardBookings() {
@@ -388,6 +421,30 @@ function veDashboardServices() {
             <span class="shrink-0 h-fit px-2 py-1 rounded-full text-[10px] font-bold ${mauBadge(request.TrangThai)}">${escapeHTML(request.TrangThai)}</span>
         </div>`;
     }).join('');
+}
+
+function veDashboardIncidents() {
+    const container = document.getElementById('dashboard-recent-incidents');
+    const incidents = docDuLieu('SuCoKyThuat')
+        .slice()
+        .sort((a, b) => new Date(b.NgayTao || 0) - new Date(a.NgayTao || 0))
+        .slice(0, 5);
+
+    if (incidents.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 italic">Chưa có sự cố kỹ thuật.</p>';
+        return;
+    }
+
+    container.innerHTML = incidents.map(incident => `
+        <div class="flex justify-between gap-4 border border-gray-100 rounded p-3">
+            <div>
+                <p class="font-bold text-dark">${escapeHTML(incident.MaPhong || incident.KhuVuc || 'Khu vực chung')} · ${escapeHTML(incident.NhomSuCo)}</p>
+                <p class="text-xs text-gray-500">${escapeHTML(incident.MoTa)}</p>
+                <p class="text-xs text-gray-500">${escapeHTML(incident.MucDo)} · ${formatNgayGio(incident.NgayTao)}</p>
+            </div>
+            <span class="shrink-0 h-fit px-2 py-1 rounded-full text-[10px] font-bold ${mauBadge(incident.TrangThai)}">${escapeHTML(incident.TrangThai)}</span>
+        </div>
+    `).join('');
 }
 
 // ============================================================
@@ -650,6 +707,244 @@ function capNhatTrangThaiYeuCau(maYC, trangThaiMoi) {
 
     alert(`Đã cập nhật yêu cầu ${maYC} sang trạng thái "${trangThaiMoi}".`);
     lamMoiTabHienTai();
+}
+
+// ============================================================
+// QUAN LY KY THUAT
+// ============================================================
+function taoMaSuCoMoi(incidents) {
+    const maxNumber = incidents.reduce((max, incident) => {
+        const match = String(incident.MaSC || '').match(/^SC(\d+)$/);
+        return match ? Math.max(max, Number(match[1])) : max;
+    }, 0);
+
+    return `SC${String(maxNumber + 1).padStart(3, '0')}`;
+}
+
+function themLichSuSuCo(incident, trangThai, ghiChu = '') {
+    if (!Array.isArray(incident.LichSu)) incident.LichSu = [];
+
+    incident.LichSu.push({
+        TrangThai: trangThai,
+        GhiChu: ghiChu,
+        MaNV: currentStaff?.MaNV || '',
+        TenNV: currentStaff?.HoTen || '',
+        ChucDanh: currentStaff?.ChucDanh || '',
+        ThoiGian: new Date().toISOString()
+    });
+}
+
+function renderPhongSuCoOptions() {
+    const select = document.getElementById('incident-room');
+    if (!select) return;
+
+    const rooms = docDuLieu('Phong');
+    const currentValue = select.value;
+    const areaOptions = ['Sảnh chính', 'Nhà hàng', 'Sky Lounge Bar', 'Phòng họp', 'Hành lang', 'Khu vực khác'];
+    const roomOptions = rooms.map(room => {
+        const roomType = timLoaiPhong(room.MaLoaiPhong);
+        return `<option value="${escapeHTML(room.MaPhong)}">${escapeHTML(room.MaPhong)} - ${escapeHTML(roomType?.TenLoai || 'Phòng SSA')}</option>`;
+    }).join('');
+
+    select.innerHTML = `
+        <option value="">Chọn phòng / khu vực</option>
+        ${areaOptions.map(area => `<option value="${escapeHTML(area)}">${escapeHTML(area)}</option>`).join('')}
+        ${roomOptions}
+    `;
+
+    if ([...select.options].some(option => option.value === currentValue)) {
+        select.value = currentValue;
+    }
+}
+
+function taoBaoCaoSuCo(e) {
+    e.preventDefault();
+
+    if (!coQuyenLeTan()) {
+        alert('Chỉ lễ tân hoặc quản lý mới được tạo báo cáo sự cố.');
+        return;
+    }
+
+    const incidents = docDuLieu('SuCoKyThuat');
+    const newIncident = {
+        MaSC: taoMaSuCoMoi(incidents),
+        MaPhong: document.getElementById('incident-room').value,
+        NhomSuCo: document.getElementById('incident-category').value,
+        MucDo: document.getElementById('incident-priority').value,
+        MoTa: document.getElementById('incident-note').value.trim(),
+        MaNVBao: currentStaff?.MaNV || '',
+        TenNVBao: currentStaff?.HoTen || '',
+        NgayTao: new Date().toISOString(),
+        TrangThai: INCIDENT_REPORTED,
+        LichSu: []
+    };
+
+    themLichSuSuCo(newIncident, INCIDENT_REPORTED, 'Lễ tân ghi nhận và gửi sự cố cho bộ phận kỹ thuật.');
+    incidents.push(newIncident);
+    luuDuLieu('SuCoKyThuat', incidents);
+
+    document.getElementById('incident-form')?.reset();
+    alert(`Đã gửi báo cáo sự cố ${newIncident.MaSC} cho kỹ thuật.`);
+    veBangSuCoKyThuat();
+}
+
+function veBangSuCoKyThuat() {
+    renderPhongSuCoOptions();
+
+    const incidents = docDuLieu('SuCoKyThuat')
+        .slice()
+        .sort((a, b) => new Date(b.NgayTao || 0) - new Date(a.NgayTao || 0));
+    const table = document.getElementById('table-incidents');
+
+    if (!table) return;
+
+    if (incidents.length === 0) {
+        table.innerHTML = taoDongTrong(7, 'Chưa có sự cố kỹ thuật nào.');
+        return;
+    }
+
+    table.innerHTML = incidents.map(incident => {
+        const lastHistory = Array.isArray(incident.LichSu) && incident.LichSu.length
+            ? incident.LichSu[incident.LichSu.length - 1]
+            : null;
+        const actionButton = taoNutSuCoKyThuat(incident);
+
+        return `
+        <tr class="border-b hover:bg-gray-50 align-top">
+            <td class="p-3 font-bold">${escapeHTML(incident.MaSC)}</td>
+            <td class="p-3">
+                <p class="font-bold text-dark">${escapeHTML(incident.MaPhong || 'Khu vực chung')}</p>
+                <p class="text-xs text-gray-500">${formatNgayGio(incident.NgayTao)}</p>
+            </td>
+            <td class="p-3">
+                <p class="font-bold text-dark">${escapeHTML(incident.NhomSuCo)} · ${escapeHTML(incident.MucDo)}</p>
+                <p class="text-xs text-gray-500 max-w-xs">${escapeHTML(incident.MoTa)}</p>
+                ${lastHistory?.GhiChu ? `<p class="text-xs text-blue-600 mt-2">Ghi chú mới: ${escapeHTML(lastHistory.GhiChu)}</p>` : ''}
+            </td>
+            <td class="p-3">
+                <p class="font-bold">${escapeHTML(incident.TenNVBao || 'Lễ tân')}</p>
+                <p class="text-xs text-gray-500">${escapeHTML(incident.MaNVBao || '')}</p>
+            </td>
+            <td class="p-3">
+                <p class="font-bold">${escapeHTML(incident.TenNVKyThuat || 'Chưa tiếp nhận')}</p>
+                <p class="text-xs text-gray-500">${incident.NgayBaoQuanLy ? `Báo quản lý: ${formatNgayGio(incident.NgayBaoQuanLy)}` : 'Đang chờ kỹ thuật'}</p>
+            </td>
+            <td class="p-3"><span class="px-2 py-1 rounded-full font-bold text-[10px] ${mauBadge(incident.TrangThai)}">${escapeHTML(incident.TrangThai)}</span></td>
+            <td class="p-3">${actionButton}</td>
+        </tr>`;
+    }).join('');
+}
+
+function taoNutSuCoKyThuat(incident) {
+    if (incident.TrangThai === INCIDENT_REPORTED) {
+        if (coQuyenKyThuat()) {
+            return `<button onclick="baoQuanLySuCo('${incident.MaSC}')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-blue-700">Kỹ thuật báo quản lý</button>`;
+        }
+
+        return '<span class="text-gray-400 italic text-xs">Chờ kỹ thuật báo quản lý</span>';
+    }
+
+    if (incident.TrangThai === INCIDENT_MANAGER_REPORTED) {
+        if (coQuyenQuanLy()) {
+            return `<button onclick="duyetSuaChuaSuCo('${incident.MaSC}')" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-indigo-700">Quản lý duyệt sửa</button>`;
+        }
+
+        return '<span class="text-gray-400 italic text-xs">Chờ quản lý duyệt sửa</span>';
+    }
+
+    if (incident.TrangThai === INCIDENT_APPROVED) {
+        if (coQuyenKyThuat()) {
+            return `<button onclick="batDauSuaChuaSuCo('${incident.MaSC}')" class="bg-orange-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-orange-700">Bắt đầu sửa chữa</button>`;
+        }
+
+        return '<span class="text-gray-400 italic text-xs">Đã duyệt, chờ kỹ thuật sửa</span>';
+    }
+
+    if (incident.TrangThai === INCIDENT_REPAIRING) {
+        if (coQuyenKyThuat()) {
+            return `<button onclick="baoDaSuaXongSuCo('${incident.MaSC}')" class="bg-purple-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-purple-700">Báo đã sửa xong</button>`;
+        }
+
+        return '<span class="text-gray-400 italic text-xs">Kỹ thuật đang sửa</span>';
+    }
+
+    if (incident.TrangThai === INCIDENT_FIXED) {
+        if (coQuyenQuanLy()) {
+            return `<button onclick="xacNhanHoanTatSuCo('${incident.MaSC}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-green-700">Quản lý xác nhận</button>`;
+        }
+
+        return '<span class="text-gray-400 italic text-xs">Chờ quản lý xác nhận</span>';
+    }
+
+    return '<span class="text-gray-400 italic text-xs">Hoàn tất</span>';
+}
+
+function capNhatSuCoKyThuat(maSC, trangThaiMoi, ghiChu = '', extraData = {}) {
+    const incidents = docDuLieu('SuCoKyThuat');
+    const incidentIndex = incidents.findIndex(incident => incident.MaSC === maSC);
+    if (incidentIndex < 0) return;
+
+    incidents[incidentIndex] = {
+        ...incidents[incidentIndex],
+        ...extraData,
+        TrangThai: trangThaiMoi,
+        NgayCapNhat: new Date().toISOString()
+    };
+    themLichSuSuCo(incidents[incidentIndex], trangThaiMoi, ghiChu);
+    luuDuLieu('SuCoKyThuat', incidents);
+
+    alert(`Đã cập nhật sự cố ${maSC}: ${trangThaiMoi}.`);
+    lamMoiTabHienTai();
+}
+
+function baoQuanLySuCo(maSC) {
+    const note = prompt('Nội dung kỹ thuật báo lại cho quản lý:', 'Kỹ thuật đã kiểm tra sơ bộ và xin phép sửa chữa.');
+    if (note === null) return;
+
+    capNhatSuCoKyThuat(maSC, INCIDENT_MANAGER_REPORTED, note, {
+        MaNVKyThuat: currentStaff?.MaNV || '',
+        TenNVKyThuat: currentStaff?.HoTen || '',
+        NgayBaoQuanLy: new Date().toISOString()
+    });
+}
+
+function duyetSuaChuaSuCo(maSC) {
+    const note = prompt('Ghi chú duyệt sửa chữa của quản lý:', 'Quản lý đồng ý cho kỹ thuật tiến hành sửa chữa.');
+    if (note === null) return;
+
+    capNhatSuCoKyThuat(maSC, INCIDENT_APPROVED, note, {
+        MaNVQuanLyDuyet: currentStaff?.MaNV || '',
+        TenNVQuanLyDuyet: currentStaff?.HoTen || '',
+        NgayDuyetSua: new Date().toISOString()
+    });
+}
+
+function batDauSuaChuaSuCo(maSC) {
+    capNhatSuCoKyThuat(maSC, INCIDENT_REPAIRING, 'Kỹ thuật bắt đầu sửa chữa.', {
+        MaNVKyThuat: currentStaff?.MaNV || '',
+        TenNVKyThuat: currentStaff?.HoTen || '',
+        NgayBatDauSua: new Date().toISOString()
+    });
+}
+
+function baoDaSuaXongSuCo(maSC) {
+    const note = prompt('Ghi chú sau khi sửa xong:', 'Kỹ thuật đã sửa chữa xong, chờ quản lý kiểm tra và xác nhận.');
+    if (note === null) return;
+
+    capNhatSuCoKyThuat(maSC, INCIDENT_FIXED, note, {
+        NgaySuaXong: new Date().toISOString()
+    });
+}
+
+function xacNhanHoanTatSuCo(maSC) {
+    const note = prompt('Ghi chú xác nhận hoàn tất của quản lý:', 'Quản lý đã kiểm tra và xác nhận sự cố đã được xử lý.');
+    if (note === null) return;
+
+    capNhatSuCoKyThuat(maSC, INCIDENT_DONE, note, {
+        MaNVQuanLyXacNhan: currentStaff?.MaNV || '',
+        TenNVQuanLyXacNhan: currentStaff?.HoTen || '',
+        NgayXacNhan: new Date().toISOString()
+    });
 }
 
 // ============================================================
