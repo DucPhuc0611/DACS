@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Trị | SSA Hotel PMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Lato', 'sans-serif'], serif: ['Playfair Display', 'serif'] },
+                    colors: { gold: '#C5A059', dark: '#111111', panel: '#1e293b' }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 flex h-screen overflow-hidden font-sans text-gray-800">
+
+    <div id="login-screen" class="fixed inset-0 bg-dark flex justify-center items-center z-50">
+        <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md text-center">
+            <h1 class="text-3xl font-serif text-dark mb-2 text-gold">SSA HOTEL</h1>
+            <p class="text-xs uppercase tracking-widest text-gray-400 mb-6 border-b pb-4">Hệ Thống Quản Trị PMS</p>
+            
+            <div class="text-left bg-gray-50 p-4 rounded mb-6 text-xs text-gray-600 shadow-inner">
+                <p class="font-bold mb-1 text-blue-600">Tài khoản Nội bộ (Pass chung: 123)</p>
+                <ul class="list-disc pl-4 space-y-1 mt-2">
+                    <li>Lễ tân (Tiền sảnh): <b>letan</b></li>
+                    <li>Buồng phòng: <b>buongphong</b></li>
+                    <li>Kỹ thuật: <b>kythuat</b></li>
+                    <li>Giám đốc (Admin): <b>admin</b></li>
+                </ul>
+            </div>
+
+            <form id="login-form" class="space-y-4">
+                <input type="text" id="login-user" required class="w-full border p-3 rounded outline-none focus:border-gold" placeholder="Tên đăng nhập (VD: letan)">
+                <input type="password" id="login-pass" required class="w-full border p-3 rounded outline-none focus:border-gold" placeholder="Mật khẩu (123)">
+                <p id="login-error" class="text-red-500 text-xs font-bold hidden">Sai thông tin đăng nhập!</p>
+                <button type="submit" class="w-full bg-dark text-white font-bold py-3 uppercase tracking-widest text-xs hover:bg-gold transition shadow-lg">Truy Cập Hệ Thống</button>
+            </form>
+        </div>
+    </div>
+
+    <aside class="w-64 bg-panel text-gray-300 flex flex-col shadow-2xl z-20">
+        <div class="p-6 text-center border-b border-gray-700">
+            <h2 class="text-2xl font-serif text-gold tracking-widest">SSA PMS</h2>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto text-sm font-medium" id="sidebar-menu">
+            <button onclick="chuyenTab('dashboard')" class="role-all w-full text-left p-3 hover:bg-gray-700 rounded transition bg-gray-700 text-white" id="btn-dashboard">📊 Dashboard</button>
+            <button onclick="chuyenTab('rooms')" class="role-all w-full text-left p-3 hover:bg-gray-700 rounded transition bg-gray-700 text-white" id="btn-rooms">🏨 Sơ Đồ Phòng</button>
+            <button onclick="chuyenTab('bookings')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-bookings">📝 Quản Lý Lưu Trú</button>
+            <button onclick="chuyenTab('dining')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-dining">🍽️ Quản Lý Ẩm Thực</button>
+            <button onclick="chuyenTab('events')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-events">🎉 Quản Lý Sự Kiện</button>
+            <button onclick="chuyenTab('customers')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-customers">👥 Khách Hàng</button>
+        </nav>
+
+        <div class="p-4 bg-gray-900 border-t border-gray-700">
+            <p class="text-xs text-gray-500 uppercase">Trực ca</p>
+            <p id="staff-name" class="font-bold text-white mt-1 truncate">---</p>
+            <p id="staff-role" class="text-[10px] text-gold mt-1 uppercase font-bold tracking-wider">---</p>
+            <button onclick="dangXuat()" class="mt-3 w-full bg-red-500/20 text-red-400 text-xs py-2 rounded hover:bg-red-500 hover:text-white transition">Đăng Xuất</button>
+        </div>
+    </aside>
+
+
+    <main class="flex-1 flex flex-col overflow-hidden bg-gray-50 relative">
+        <header class="bg-white shadow-sm px-8 py-4 flex justify-between items-center z-10">
+            <h2 id="page-title" class="text-2xl font-serif font-bold text-dark">Dashboard</h2>
+            <div id="header-actions" class="flex gap-3 text-xs font-bold uppercase tracking-wider">
+                <span class="px-2 py-1 bg-green-100 text-green-700 rounded border border-green-200">🟢 Sẵn Sàng</span>
+                <span class="px-2 py-1 bg-red-100 text-red-700 rounded border border-red-200">🔴 Đang Dùng</span>
+                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded border border-yellow-200">🟡 Chưa Dọn</span>
+            </div>
+        </header>
+
+        <div class="p-8 flex-1 overflow-y-auto">
+            <div id="tab-dashboard" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                    <div class="bg-white border border-gray-200 shadow-sm rounded p-4">
+                        <p class="text-xs uppercase tracking-widest text-gray-400 font-bold">Tổng phòng</p>
+                        <p id="stat-total-rooms" class="text-3xl font-black text-dark mt-2">0</p>
+                    </div>
+                    <div class="bg-white border border-green-200 shadow-sm rounded p-4">
+                        <p class="text-xs uppercase tracking-widest text-green-600 font-bold">Sẵn sàng</p>
+                        <p id="stat-ready-rooms" class="text-3xl font-black text-green-700 mt-2">0</p>
+                    </div>
+                    <div class="bg-white border border-blue-200 shadow-sm rounded p-4">
+                        <p class="text-xs uppercase tracking-widest text-blue-600 font-bold">Lưu trú chờ xử lý</p>
+                        <p id="stat-pending-bookings" class="text-3xl font-black text-blue-700 mt-2">0</p>
+                    </div>
+                    <div class="bg-white border border-amber-200 shadow-sm rounded p-4">
+                        <p class="text-xs uppercase tracking-widest text-amber-600 font-bold">Dịch vụ chờ xử lý</p>
+                        <p id="stat-pending-services" class="text-3xl font-black text-amber-700 mt-2">0</p>
+                    </div>
+                    <div class="bg-white border border-gold/40 shadow-sm rounded p-4">
+                        <p class="text-xs uppercase tracking-widest text-gold font-bold">Doanh thu dự kiến</p>
+                        <p id="stat-expected-revenue" class="text-3xl font-black text-dark mt-2">$0</p>
+                    </div>
+                    <div class="bg-white border border-gray-200 shadow-sm rounded p-4">
+                        <p class="text-xs uppercase tracking-widest text-gray-400 font-bold">Khách hàng</p>
+                        <p id="stat-customers" class="text-3xl font-black text-dark mt-2">0</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <section class="bg-white shadow rounded p-6">
+                        <div class="flex justify-between items-center border-b pb-3 mb-4">
+                            <h3 class="text-lg font-bold text-dark">Đặt phòng mới nhất</h3>
+                            <button onclick="chuyenTab('bookings')" class="role-letan role-admin text-xs font-bold text-blue-600 hover:text-blue-800 hidden">Xem tất cả</button>
+                        </div>
+                        <div id="dashboard-recent-bookings" class="space-y-3 text-sm"></div>
+                    </section>
+                    <section class="bg-white shadow rounded p-6">
+                        <div class="flex justify-between items-center border-b pb-3 mb-4">
+                            <h3 class="text-lg font-bold text-dark">Yêu cầu ẩm thực & sự kiện</h3>
+                            <button onclick="chuyenTab('dining')" class="role-letan role-admin text-xs font-bold text-blue-600 hover:text-blue-800 hidden">Xem dịch vụ</button>
+                        </div>
+                        <div id="dashboard-recent-services" class="space-y-3 text-sm"></div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="tab-rooms" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+
+            </div>
+
+            <div id="tab-bookings" class="hidden bg-white shadow rounded p-6">
+                <h3 class="text-lg font-bold mb-4 text-dark border-b pb-2">Danh sách khách hàng đặt từ Website</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm min-w-[980px]">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-3">Mã PDP</th>
+                                <th class="p-3">Khách Hàng</th>
+                                <th class="p-3">Phòng Đặt</th>
+                                <th class="p-3">Lịch Trình</th>
+                                <th class="p-3">Tổng Tiền</th>
+                                <th class="p-3">Trạng Thái</th>
+                                <th class="p-3">Nghiệp Vụ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-bookings">
+                            <!-- JS sẽ vẽ danh sách đặt phòng vào đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-dining" class="hidden bg-white shadow rounded p-6">
+                <h3 class="text-lg font-bold mb-4 text-dark border-b pb-2">Yêu cầu đặt bàn ẩm thực từ Website</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm min-w-[980px]">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-3">Mã YC</th>
+                                <th class="p-3">Khách Hàng</th>
+                                <th class="p-3">Dịch Vụ</th>
+                                <th class="p-3">Lịch Hẹn</th>
+                                <th class="p-3">Số Khách</th>
+                                <th class="p-3">Trạng Thái</th>
+                                <th class="p-3">Nghiệp Vụ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-dining"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-events" class="hidden bg-white shadow rounded p-6">
+                <h3 class="text-lg font-bold mb-4 text-dark border-b pb-2">Yêu cầu tư vấn sự kiện từ Website</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm min-w-[980px]">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-3">Mã YC</th>
+                                <th class="p-3">Khách Hàng</th>
+                                <th class="p-3">Gói Sự Kiện</th>
+                                <th class="p-3">Lịch Hẹn</th>
+                                <th class="p-3">Số Khách</th>
+                                <th class="p-3">Trạng Thái</th>
+                                <th class="p-3">Nghiệp Vụ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-events"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-customers" class="hidden bg-white shadow rounded p-6">
+                <h3 class="text-lg font-bold mb-4 text-dark border-b pb-2">Khách hàng liên kết với booking và dịch vụ</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm min-w-[900px]">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-3">Mã KH</th>
+                                <th class="p-3">Họ Tên</th>
+                                <th class="p-3">Liên Hệ</th>
+                                <th class="p-3">Lưu Trú</th>
+                                <th class="p-3">Ẩm Thực</th>
+                                <th class="p-3">Sự Kiện</th>
+                                <th class="p-3">Lần Gần Nhất</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-customers"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>

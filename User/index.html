@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khách sạn sang trọng | SSA HOTEL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Lato', 'sans-serif'], serif: ['Playfair Display', 'serif'] },
+                    colors: { gold: '#C5A059', dark: '#111111' }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white text-gray-800 font-sans antialiased overflow-x-hidden">
+    <nav class="absolute w-full z-40 top-0 bg-gradient-to-b from-black/80 to-transparent">
+        <div class="container mx-auto px-6 py-6 flex justify-between items-center text-white">
+            <div class="hidden md:flex space-x-10 text-[12px] tracking-[0.25em] font-light uppercase">
+                <a href="#rooms-section" class="hover:text-gold transition">Lưu Trú</a>
+                <a href="#dining-section" class="hover:text-gold transition">Ẩm Thực</a>
+                <a href="#events-section" class="hover:text-gold transition">Sự Kiện</a>
+            </div>
+            <h1 class="text-3xl font-serif tracking-[0.2em] absolute left-1/2 -translate-x-1/2 cursor-pointer text-gold font-medium">
+                SSA HOTEL
+            </h1>
+            <div class="text-[11px] tracking-[0.2em] uppercase font-bold flex gap-6 items-center">
+                <div id="menu-guest" class="flex items-center gap-3">
+                    <button onclick="moModal('register-modal')" class="bg-gold border border-gold px-5 py-2 text-white hover:bg-white hover:text-dark hover:border-white transition duration-300">
+                        Đăng Ký
+                    </button>
+                    <button onclick="moModal('login-modal')" class="bg-transparent border border-white px-5 py-2 hover:bg-white hover:text-dark transition duration-300">
+                        Đăng Nhập
+                    </button>
+                </div>
+                <div id="menu-user" class="hidden flex items-center gap-5">
+                    <button onclick="moModal('profile-modal')" class="hover:text-gold transition border-b border-transparent hover:border-gold pb-1">
+                        Hồ Sơ Của <span id="display-name" class="text-gold"></span>
+                    </button>
+                    <button onclick="xuLyDangXuat()" class="text-red-400 hover:text-red-500 transition">Đăng Xuất</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <header class="relative h-[90vh] bg-cover bg-center flex items-center justify-center" style="background-image: url('https://images.unsplash.com/photo-1542314831-c6a4d1424391?auto=format&fit=crop&w=2000&q=80');">
+        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="relative z-10 text-center text-white px-4 mt-20">
+            <p class="uppercase tracking-[0.3em] text-xs mb-6 text-gold drop-shadow-md font-semibold">Chào Mừng Đến Với</p>
+            <h2 class="text-5xl md:text-7xl font-serif mb-6 leading-tight drop-shadow-2xl">
+                Tuyệt Tác Không Gian<br>Giữa Lòng Sài Gòn
+            </h2>
+            <p class="max-w-2xl mx-auto font-light text-sm md:text-base opacity-90 leading-relaxed">
+                Trải nghiệm kỳ nghỉ xa hoa và dịch vụ cá nhân hóa đẳng cấp quốc tế tại SSA Hotel.
+            </p>
+        </div>
+    </header>
+    <main id="rooms-section" class="container mx-auto px-6 py-24 max-w-7xl">
+        <div class="text-center mb-16">
+            <h3 class="text-4xl font-serif text-dark font-medium mb-4">Phòng & Suite Sang Trọng</h3>
+            <p class="text-gray-500 font-light text-sm tracking-wide">Trang bị vòi sen tắm đứng, máy sấy Dyson và công nghệ nhà thông minh.</p>
+        </div>
+        
+        <div id="room-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        </div>
+    </main>
+
+    <section id="dining-section" class="bg-gray-50 py-24">
+        <div class="container mx-auto px-6 max-w-7xl">
+            <div class="grid grid-cols-1 md:grid-cols-[0.85fr_1.15fr] gap-10 items-end mb-14">
+                <div>
+                    <p class="uppercase tracking-[0.25em] text-xs text-gold font-bold mb-4">Ẩm Thực</p>
+                    <h3 class="text-4xl font-serif text-dark font-medium">Nhà Hàng & Bar</h3>
+                </div>
+                <p class="text-gray-500 font-light leading-relaxed md:text-right">
+                    Không gian ẩm thực riêng cho bữa sáng, tiệc tối và những cuộc hẹn thân mật, vận hành theo tiêu chuẩn dịch vụ của SSA Hotel.
+                </p>
+            </div>
+            <div id="dining-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            </div>
+        </div>
+    </section>
+
+    <section id="events-section" class="bg-white py-24">
+        <div class="container mx-auto px-6 max-w-7xl">
+            <div class="text-center mb-16">
+                <p class="uppercase tracking-[0.25em] text-xs text-gold font-bold mb-4">Sự Kiện</p>
+                <h3 class="text-4xl font-serif text-dark font-medium mb-4">Hội Nghị & Tiệc Riêng</h3>
+                <p class="max-w-2xl mx-auto text-gray-500 font-light leading-relaxed">
+                    Tổ chức hội nghị, tiệc cưới và sự kiện doanh nghiệp với không gian linh hoạt, thực đơn riêng và đội ngũ điều phối chuyên nghiệp.
+                </p>
+            </div>
+            <div id="event-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            </div>
+        </div>
+    </section>
+
+    <div id="login-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 transition-all">
+        <div class="bg-white p-10 shadow-2xl w-full max-w-md relative text-center">
+            <button onclick="dongModal('login-modal')" class="absolute top-4 right-6 text-gray-400 hover:text-dark text-3xl font-light">&times;</button>
+            <h3 class="text-3xl font-serif text-dark mb-2">Đăng Nhập</h3>
+            <p class="text-xs text-gray-500 mb-8 font-light tracking-wide">Tài khoản demo: <b class="text-blue-600">phuc</b> | Pass: <b class="text-blue-600">123</b></p>
+            
+            <form id="login-form" class="space-y-5" onsubmit="xuLyDangNhap(event)">
+                <input type="text" id="login-username" required class="w-full border-b border-gray-300 py-3 text-center font-serif text-lg outline-none focus:border-gold transition bg-transparent" placeholder="Tên đăng nhập...">
+                <input type="password" id="login-password" required class="w-full border-b border-gray-300 py-3 text-center font-serif text-lg outline-none focus:border-gold transition bg-transparent" placeholder="Mật khẩu...">
+                <p id="login-error" class="text-red-500 text-xs font-medium hidden">⚠️ Sai tài khoản hoặc mật khẩu!</p>
+                <button type="submit" class="w-full bg-gold text-white uppercase tracking-widest text-xs font-semibold py-4 hover:bg-dark transition duration-300 mt-2">Truy Cập Hệ Thống</button>
+            </form>
+            <button onclick="moDangKyTuDangNhap()" class="mt-6 text-xs uppercase tracking-[0.2em] text-gray-500 hover:text-gold transition">
+                Chưa có tài khoản? Đăng ký mới
+            </button>
+        </div>
+    </div>
+    <div id="register-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 transition-all overflow-y-auto">
+        <div class="bg-white p-10 shadow-2xl w-full max-w-lg relative text-center my-10">
+            <button onclick="dongModal('register-modal')" class="absolute top-4 right-6 text-gray-400 hover:text-dark text-3xl font-light">&times;</button>
+            <h3 class="text-3xl font-serif text-dark mb-2">Đăng Ký Tài Khoản</h3>
+            <p class="text-xs text-gray-500 mb-8 font-light tracking-wide">Tạo hồ sơ khách hàng để đặt phòng, ẩm thực và sự kiện.</p>
+
+            <form id="register-form" class="space-y-5 text-left" onsubmit="xuLyDangKy(event)">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Họ và tên *</label>
+                    <input type="text" id="reg-name" required class="w-full border-b border-gray-300 py-3 outline-none focus:border-gold transition bg-transparent" placeholder="Nguyễn Văn A">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Số điện thoại *</label>
+                        <input type="tel" id="reg-phone" required class="w-full border-b border-gray-300 py-3 outline-none focus:border-gold transition bg-transparent" placeholder="0901234567">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Email</label>
+                        <input type="email" id="reg-email" class="w-full border-b border-gray-300 py-3 outline-none focus:border-gold transition bg-transparent" placeholder="email@example.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Tên đăng nhập *</label>
+                    <input type="text" id="reg-username" required minlength="3" maxlength="20" class="w-full border-b border-gray-300 py-3 outline-none focus:border-gold transition bg-transparent" placeholder="Từ 3-20 ký tự, không dấu cách">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Mật khẩu *</label>
+                        <input type="password" id="reg-password" required minlength="3" class="w-full border-b border-gray-300 py-3 outline-none focus:border-gold transition bg-transparent" placeholder="Tối thiểu 3 ký tự">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Nhập lại mật khẩu *</label>
+                        <input type="password" id="reg-password-confirm" required minlength="3" class="w-full border-b border-gray-300 py-3 outline-none focus:border-gold transition bg-transparent" placeholder="Nhập lại mật khẩu">
+                    </div>
+                </div>
+                <p id="register-error" class="text-red-500 text-xs font-medium hidden text-center"></p>
+                <button type="submit" class="w-full bg-dark text-white uppercase tracking-widest text-xs font-semibold py-4 hover:bg-gold transition duration-300 mt-2">Tạo Tài Khoản</button>
+            </form>
+            <button onclick="moDangNhapTuDangKy()" class="mt-6 text-xs uppercase tracking-[0.2em] text-gray-500 hover:text-gold transition">
+                Đã có tài khoản? Đăng nhập
+            </button>
+        </div>
+    </div>
+    <div id="profile-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50">
+        <div class="bg-white p-10 shadow-2xl w-full max-w-3xl relative h-[80vh] flex flex-col">
+            <button onclick="dongModal('profile-modal')" class="absolute top-4 right-6 text-gray-400 hover:text-dark text-3xl font-light">&times;</button>
+            <h3 class="text-3xl font-serif text-dark mb-8 text-center border-b pb-4">Hồ Sơ Khách Hàng</h3>
+            
+            <div class="flex flex-col md:flex-row gap-10 flex-1 overflow-hidden">
+                <div class="w-full md:w-1/3 border-r border-gray-100 pr-6">
+                    <h4 class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-6">Thông Tin Cá Nhân</h4>
+                    <div class="space-y-4 text-sm text-dark">
+                        <div><p class="text-xs text-gray-400">Họ và Tên</p><p id="prof-name" class="font-bold text-lg font-serif">---</p></div>
+                        <div><p class="text-xs text-gray-400">Số Điện Thoại</p><p id="prof-phone" class="font-medium">---</p></div>
+                        <div><p class="text-xs text-gray-400">Email</p><p id="prof-email" class="font-medium">---</p></div>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-2/3 flex flex-col h-full overflow-hidden">
+                    <div class="flex-1 overflow-y-auto pr-2">
+                        <h4 class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-6">Lịch Sử Lưu Trú</h4>
+                        <div id="history-list" class="space-y-4 mb-8">
+                        </div>
+                        <h4 class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-6">Yêu Cầu Dịch Vụ</h4>
+                        <div id="service-history-list" class="space-y-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="booking-modal" class="hidden fixed inset-0 bg-white z-50 overflow-y-auto">
+        <div class="max-w-4xl mx-auto py-12 px-6 relative">
+            <button onclick="dongModal('booking-modal')" class="absolute top-8 right-6 text-4xl font-light text-gray-400 hover:text-dark">&times;</button>
+            <h2 class="text-4xl font-serif mb-2 text-dark mt-8">Đăng Ký Lưu Trú</h2>
+            <p class="text-gold font-serif text-xl mb-10" id="booking-room-name">---</p>
+
+            <form id="booking-form" class="grid grid-cols-1 md:grid-cols-2 gap-12" onsubmit="xuLyDatPhong(event)">
+                <input type="hidden" id="booking-room-id">
+
+                <div class="space-y-6">
+                    <h4 class="text-xs uppercase tracking-[0.2em] font-bold border-b border-gray-200 pb-2 mb-4 text-dark">Khách Lưu Trú</h4>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Họ và Tên *</label>
+                        <input type="text" id="bk-name" required readonly class="w-full border-b border-gray-300 py-2 outline-none font-serif text-lg bg-gray-50 text-gray-600">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Số điện thoại *</label>
+                            <input type="text" id="bk-phone" required readonly class="w-full border-b border-gray-300 py-2 bg-gray-50 text-gray-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Email</label>
+                            <input type="email" id="bk-email" readonly class="w-full border-b border-gray-300 py-2 bg-gray-50 text-gray-600">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6 bg-gray-50 p-8 rounded-lg border border-gray-100">
+                    <h4 class="text-xs uppercase tracking-[0.2em] font-bold border-b border-gray-200 pb-2 mb-4 text-dark">Lịch Trình</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Nhận phòng *</label>
+                            <input type="date" id="bk-checkin" required class="w-full border-b border-gray-300 py-2 bg-transparent outline-none focus:border-gold">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Trả phòng *</label>
+                            <input type="date" id="bk-checkout" required class="w-full border-b border-gray-300 py-2 bg-transparent outline-none focus:border-gold">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Số khách *</label>
+                            <input type="number" id="bk-guests" min="1" max="6" value="2" required class="w-full border-b border-gray-300 py-2 bg-transparent outline-none focus:border-gold">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Tiền cọc ($) *</label>
+                            <input type="number" id="bk-deposit" value="100" readonly class="w-full border-b border-gray-300 py-2 bg-transparent outline-none text-gray-500">
+                        </div>
+                    </div>
+                    <div id="booking-summary" class="hidden rounded-md border border-gold/30 bg-white p-4 text-sm text-gray-600">
+                        <div class="flex justify-between py-1">
+                            <span>Số đêm</span>
+                            <strong id="summary-nights" class="text-dark">0</strong>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span>Đơn giá</span>
+                            <strong id="summary-price" class="text-dark">$0</strong>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span>Tổng tiền dự kiến</span>
+                            <strong id="summary-total" class="text-gold">$0</strong>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-dark text-white uppercase tracking-[0.2em] text-xs font-bold py-5 mt-6 hover:bg-gold transition duration-300 shadow-xl">
+                        Xác Nhận Đặt Phòng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="service-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 overflow-y-auto">
+        <div class="bg-white p-8 md:p-10 shadow-2xl w-full max-w-3xl relative my-10">
+            <button onclick="dongModal('service-modal')" class="absolute top-4 right-6 text-gray-400 hover:text-dark text-3xl font-light">&times;</button>
+            <h2 id="service-modal-title" class="text-4xl font-serif mb-2 text-dark">Yêu Cầu Dịch Vụ</h2>
+            <p id="service-modal-subtitle" class="text-gold font-serif text-xl mb-8">---</p>
+
+            <form id="service-form" class="grid grid-cols-1 md:grid-cols-2 gap-10" onsubmit="xuLyGuiYeuCauDichVu(event)">
+                <input type="hidden" id="service-type">
+                <input type="hidden" id="service-id">
+
+                <div class="space-y-5">
+                    <h4 class="text-xs uppercase tracking-[0.2em] font-bold border-b border-gray-200 pb-2 text-dark">Thông Tin Liên Hệ</h4>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Họ và Tên *</label>
+                        <input type="text" id="svc-name" required readonly class="w-full border-b border-gray-300 py-2 outline-none font-serif text-lg bg-gray-50 text-gray-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Số điện thoại *</label>
+                        <input type="text" id="svc-phone" required readonly class="w-full border-b border-gray-300 py-2 bg-gray-50 text-gray-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Email</label>
+                        <input type="email" id="svc-email" readonly class="w-full border-b border-gray-300 py-2 bg-gray-50 text-gray-600">
+                    </div>
+                </div>
+
+                <div class="space-y-5 bg-gray-50 p-6 border border-gray-100">
+                    <h4 class="text-xs uppercase tracking-[0.2em] font-bold border-b border-gray-200 pb-2 text-dark">Chi Tiết Yêu Cầu</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Ngày *</label>
+                            <input type="date" id="svc-date" required class="w-full border-b border-gray-300 py-2 bg-transparent outline-none focus:border-gold">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Giờ</label>
+                            <input type="time" id="svc-time" class="w-full border-b border-gray-300 py-2 bg-transparent outline-none focus:border-gold">
+                        </div>
+                    </div>
+                    <div>
+                        <label id="svc-guests-label" class="block text-xs text-gray-500 mb-1">Số khách *</label>
+                        <input type="number" id="svc-guests" min="1" value="2" required class="w-full border-b border-gray-300 py-2 bg-transparent outline-none focus:border-gold">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Ghi chú</label>
+                        <textarea id="svc-note" rows="4" class="w-full border border-gray-200 p-3 bg-white outline-none focus:border-gold resize-none" placeholder="Yêu cầu thực đơn, bố trí bàn, thiết bị, thời lượng sự kiện..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-dark text-white uppercase tracking-[0.2em] text-xs font-bold py-4 hover:bg-gold transition duration-300">
+                        Gửi Yêu Cầu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <footer class="bg-dark text-white py-12 text-center text-xs tracking-widest font-light">
+        <p class="mb-2 uppercase font-bold text-gold">SSA HOTEL MANAGEMENT</p>
+        <p class="opacity-50">© 2026 Đồ Án Cơ Sở - Khoa CNTT. All rights reserved.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
