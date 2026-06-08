@@ -17,6 +17,7 @@ const INCIDENT_DONE = 'Quản lý xác nhận hoàn tất';
 
 let currentStaff = null;
 let activeTab = 'dashboard';
+const ADMIN_SESSION_KEY = 'CurrentAdmin';
 
 const DEFAULT_CUSTOMERS = [
     {
@@ -72,6 +73,24 @@ function docDuLieu(key, fallback = []) {
 
 function luuDuLieu(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
+}
+
+function docPhienAdmin() {
+    try {
+        return JSON.parse(sessionStorage.getItem(ADMIN_SESSION_KEY));
+    } catch {
+        return null;
+    }
+}
+
+function luuPhienAdmin(staff) {
+    sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(staff));
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+}
+
+function xoaPhienAdmin() {
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    localStorage.removeItem(ADMIN_SESSION_KEY);
 }
 
 function dongBoDanhSachTheoKhoa(storageKey, defaults, idField) {
@@ -200,7 +219,7 @@ function xuLyDangNhapAdmin(e) {
         return;
     }
 
-    luuDuLieu('CurrentAdmin', staff);
+    luuPhienAdmin(staff);
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('login-error').classList.add('hidden');
     document.getElementById('login-form').reset();
@@ -208,12 +227,12 @@ function xuLyDangNhapAdmin(e) {
 }
 
 function dangXuat() {
-    localStorage.removeItem('CurrentAdmin');
+    xoaPhienAdmin();
     window.location.reload();
 }
 
 function apDungPhanQuyen() {
-    currentStaff = docDuLieu('CurrentAdmin', null);
+    currentStaff = docPhienAdmin();
     if (!currentStaff) return;
 
     document.getElementById('staff-name').innerText = currentStaff.HoTen;
@@ -834,7 +853,7 @@ document.getElementById('login-form')?.addEventListener('submit', xuLyDangNhapAd
 window.addEventListener('DOMContentLoaded', () => {
     initAdminDB();
 
-    if (localStorage.getItem('CurrentAdmin')) {
+    if (docPhienAdmin()) {
         document.getElementById('login-screen').classList.add('hidden');
         apDungPhanQuyen();
         return;
