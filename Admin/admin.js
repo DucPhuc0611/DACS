@@ -8,10 +8,6 @@ const BOOKING_PENDING = 'Chờ nhận phòng';
 const BOOKING_CHECKED_IN = 'Đã nhận phòng';
 const BOOKING_CHECKED_OUT = 'Đã trả phòng';
 const BOOKING_CANCELLED = 'Đã hủy';
-const SERVICE_RECEIVED = 'Đã tiếp nhận';
-const SERVICE_CONFIRMED = 'Đã xác nhận';
-const SERVICE_DONE = 'Đã hoàn tất';
-const SERVICE_CANCELLED = 'Đã hủy';
 const INCIDENT_REPORTED = 'Lễ tân đã báo kỹ thuật';
 const INCIDENT_MANAGER_REPORTED = 'Kỹ thuật đã báo quản lý';
 const INCIDENT_APPROVED = 'Quản lý đã duyệt sửa';
@@ -63,18 +59,6 @@ const DEFAULT_ROOMS = [
     { MaPhong: 'P502', MaLoaiPhong: 'LP_TWIN', TrangThaiVeSinh: ROOM_READY }
 ];
 
-const DEFAULT_DINING_SERVICES = [
-    { MaDichVu: 'DINING_SIGNATURE', TenDichVu: 'Signature Restaurant', ViTri: 'Tầng 6', GioPhucVu: '06:30 - 22:00', GiaThamKhao: 45 },
-    { MaDichVu: 'DINING_SKYBAR', TenDichVu: 'Sky Lounge Bar', ViTri: 'Rooftop', GioPhucVu: '17:00 - 01:00', GiaThamKhao: 30 },
-    { MaDichVu: 'DINING_PRIVATE', TenDichVu: 'Private Dining', ViTri: 'Phòng riêng', GioPhucVu: 'Theo lịch đặt', GiaThamKhao: 120 }
-];
-
-const DEFAULT_EVENT_PACKAGES = [
-    { MaGoi: 'EVENT_MEETING', TenGoi: 'Executive Meeting', SucChua: 40, GiaKhoiDiem: 500 },
-    { MaGoi: 'EVENT_BANQUET', TenGoi: 'Grand Banquet', SucChua: 180, GiaKhoiDiem: 2500 },
-    { MaGoi: 'EVENT_ROOFTOP', TenGoi: 'Rooftop Reception', SucChua: 90, GiaKhoiDiem: 1800 }
-];
-
 // ============================================================
 // TIEN ICH LOCALSTORAGE
 // ============================================================
@@ -111,16 +95,11 @@ function initSharedDB() {
     if (!localStorage.getItem('LoaiPhong')) luuDuLieu('LoaiPhong', DEFAULT_ROOM_TYPES);
     if (!localStorage.getItem('Phong')) luuDuLieu('Phong', DEFAULT_ROOMS);
     if (!localStorage.getItem('PhieuDatPhong')) luuDuLieu('PhieuDatPhong', []);
-    if (!localStorage.getItem('DichVuAmThuc')) luuDuLieu('DichVuAmThuc', DEFAULT_DINING_SERVICES);
-    if (!localStorage.getItem('GoiSuKien')) luuDuLieu('GoiSuKien', DEFAULT_EVENT_PACKAGES);
-    if (!localStorage.getItem('YeuCauDichVu')) luuDuLieu('YeuCauDichVu', []);
     if (!localStorage.getItem('SuCoKyThuat')) luuDuLieu('SuCoKyThuat', []);
 
     dongBoDanhSachTheoKhoa('KhachHang', DEFAULT_CUSTOMERS, 'MaKH');
     dongBoDanhSachTheoKhoa('LoaiPhong', DEFAULT_ROOM_TYPES, 'MaLoaiPhong');
     dongBoDanhSachTheoKhoa('Phong', DEFAULT_ROOMS, 'MaPhong');
-    dongBoDanhSachTheoKhoa('DichVuAmThuc', DEFAULT_DINING_SERVICES, 'MaDichVu');
-    dongBoDanhSachTheoKhoa('GoiSuKien', DEFAULT_EVENT_PACKAGES, 'MaGoi');
 }
 
 function formatTien(value) {
@@ -142,17 +121,6 @@ function timKhachHang(maKH) {
 
 function timLoaiPhong(maLoaiPhong) {
     return docDuLieu('LoaiPhong').find(roomType => roomType.MaLoaiPhong === maLoaiPhong);
-}
-
-function timDichVuTheoLoai(loaiDichVu, maDichVu) {
-    const storageKey = loaiDichVu === 'SU_KIEN' ? 'GoiSuKien' : 'DichVuAmThuc';
-    const idField = loaiDichVu === 'SU_KIEN' ? 'MaGoi' : 'MaDichVu';
-    return docDuLieu(storageKey).find(item => item[idField] === maDichVu);
-}
-
-function tenDichVu(request) {
-    const service = timDichVuTheoLoai(request.LoaiDichVu, request.MaDichVu);
-    return request.TenDichVu || service?.TenDichVu || service?.TenGoi || 'Dịch vụ SSA';
 }
 
 function coQuyenLeTan() {
@@ -185,10 +153,6 @@ function mauBadge(status) {
         [BOOKING_CHECKED_IN]: 'bg-green-100 text-green-700',
         [BOOKING_CHECKED_OUT]: 'bg-gray-100 text-gray-600',
         [BOOKING_CANCELLED]: 'bg-red-100 text-red-700',
-        [SERVICE_RECEIVED]: 'bg-amber-100 text-amber-700',
-        [SERVICE_CONFIRMED]: 'bg-blue-100 text-blue-700',
-        [SERVICE_DONE]: 'bg-green-100 text-green-700',
-        [SERVICE_CANCELLED]: 'bg-red-100 text-red-700',
         [INCIDENT_REPORTED]: 'bg-amber-100 text-amber-700',
         [INCIDENT_MANAGER_REPORTED]: 'bg-blue-100 text-blue-700',
         [INCIDENT_APPROVED]: 'bg-indigo-100 text-indigo-700',
@@ -264,7 +228,7 @@ function apDungPhanQuyen() {
 }
 
 function chuyenTab(tabName) {
-    const tabs = ['dashboard', 'rooms', 'bookings', 'dining', 'events', 'technical', 'customers'];
+    const tabs = ['dashboard', 'rooms', 'bookings', 'technical', 'customers'];
     if (!tabs.includes(tabName)) return;
 
     activeTab = tabName;
@@ -282,8 +246,6 @@ function chuyenTab(tabName) {
         dashboard: 'Dashboard Quản Trị',
         rooms: 'Sơ Đồ Trạng Thái Phòng',
         bookings: 'Hồ Sơ Lưu Trú',
-        dining: 'Quản Lý Ẩm Thực',
-        events: 'Quản Lý Sự Kiện',
         technical: 'Quản Lý Kỹ Thuật',
         customers: 'Hồ Sơ Khách Hàng'
     };
@@ -292,8 +254,6 @@ function chuyenTab(tabName) {
     if (tabName === 'dashboard') veDashboard();
     if (tabName === 'rooms') veSoDoPhong();
     if (tabName === 'bookings') veBangDatPhong();
-    if (tabName === 'dining') veBangYeuCauDichVu('AM_THUC', 'table-dining');
-    if (tabName === 'events') veBangYeuCauDichVu('SU_KIEN', 'table-events');
     if (tabName === 'technical') veBangSuCoKyThuat();
     if (tabName === 'customers') veBangKhachHang();
 }
@@ -327,12 +287,10 @@ function lamMoiTabHienTai() {
 function layThongKe() {
     const rooms = docDuLieu('Phong');
     const bookings = docDuLieu('PhieuDatPhong');
-    const serviceRequests = docDuLieu('YeuCauDichVu');
     const customers = docDuLieu('KhachHang');
     const incidents = docDuLieu('SuCoKyThuat');
 
     const activeBookings = bookings.filter(booking => [BOOKING_PENDING, BOOKING_CHECKED_IN].includes(booking.TrangThai));
-    const pendingServices = serviceRequests.filter(request => request.TrangThai === SERVICE_RECEIVED);
     const openIncidents = incidents.filter(incident => incident.TrangThai !== INCIDENT_DONE);
     const expectedRevenue = bookings
         .filter(booking => booking.TrangThai !== BOOKING_CANCELLED)
@@ -344,7 +302,6 @@ function layThongKe() {
         usingRooms: rooms.filter(room => room.TrangThaiVeSinh === ROOM_USING).length,
         dirtyRooms: rooms.filter(room => room.TrangThaiVeSinh === ROOM_DIRTY).length,
         pendingBookings: activeBookings.length,
-        pendingServices: pendingServices.length,
         expectedRevenue,
         customers: customers.length,
         openIncidents: openIncidents.length
@@ -357,13 +314,11 @@ function veDashboard() {
     document.getElementById('stat-total-rooms').innerText = stats.totalRooms;
     document.getElementById('stat-ready-rooms').innerText = stats.readyRooms;
     document.getElementById('stat-pending-bookings').innerText = stats.pendingBookings;
-    document.getElementById('stat-pending-services').innerText = stats.pendingServices;
     document.getElementById('stat-expected-revenue').innerText = formatTien(stats.expectedRevenue);
     document.getElementById('stat-customers').innerText = stats.customers;
     document.getElementById('stat-open-incidents').innerText = stats.openIncidents;
 
     veDashboardBookings();
-    veDashboardServices();
     veDashboardIncidents();
 }
 
@@ -391,34 +346,6 @@ function veDashboardBookings() {
                 <p class="text-xs text-gray-500">${escapeHTML(booking.NgayNhanDuKien)} ➔ ${escapeHTML(booking.NgayTraDuKien)}</p>
             </div>
             <span class="shrink-0 h-fit px-2 py-1 rounded-full text-[10px] font-bold ${mauBadge(booking.TrangThai)}">${escapeHTML(booking.TrangThai)}</span>
-        </div>`;
-    }).join('');
-}
-
-function veDashboardServices() {
-    const container = document.getElementById('dashboard-recent-services');
-    const requests = docDuLieu('YeuCauDichVu')
-        .slice()
-        .sort((a, b) => new Date(b.NgayTao || 0) - new Date(a.NgayTao || 0))
-        .slice(0, 5);
-
-    if (requests.length === 0) {
-        container.innerHTML = '<p class="text-gray-400 italic">Chưa có yêu cầu ẩm thực hoặc sự kiện.</p>';
-        return;
-    }
-
-    container.innerHTML = requests.map(request => {
-        const customer = timKhachHang(request.MaKH);
-        const typeLabel = request.LoaiDichVu === 'SU_KIEN' ? 'Sự kiện' : 'Ẩm thực';
-
-        return `
-        <div class="flex justify-between gap-4 border border-gray-100 rounded p-3">
-            <div>
-                <p class="font-bold text-dark">${escapeHTML(tenDichVu(request))}</p>
-                <p class="text-xs text-gray-500">${typeLabel} · ${escapeHTML(customer?.HoTen || 'Khách Ẩn Danh')}</p>
-                <p class="text-xs text-gray-500">${escapeHTML(request.NgaySuDung)}${request.GioSuDung ? ` lúc ${escapeHTML(request.GioSuDung)}` : ''} · ${escapeHTML(request.SoKhach)} khách</p>
-            </div>
-            <span class="shrink-0 h-fit px-2 py-1 rounded-full text-[10px] font-bold ${mauBadge(request.TrangThai)}">${escapeHTML(request.TrangThai)}</span>
         </div>`;
     }).join('');
 }
@@ -624,88 +551,6 @@ function donXong(maPhong) {
     luuDuLieu('Phong', rooms);
 
     alert(`Đã cập nhật phòng ${maPhong} sẵn sàng đón khách.`);
-    lamMoiTabHienTai();
-}
-
-// ============================================================
-// QUAN LY AM THUC / SU KIEN
-// ============================================================
-function veBangYeuCauDichVu(loaiDichVu, tableId) {
-    const requests = docDuLieu('YeuCauDichVu')
-        .filter(request => request.LoaiDichVu === loaiDichVu)
-        .slice()
-        .sort((a, b) => new Date(b.NgayTao || 0) - new Date(a.NgayTao || 0));
-    const customers = docDuLieu('KhachHang');
-    const table = document.getElementById(tableId);
-
-    if (requests.length === 0) {
-        const emptyMessage = loaiDichVu === 'SU_KIEN'
-            ? 'Chưa có yêu cầu tư vấn sự kiện.'
-            : 'Chưa có yêu cầu đặt bàn ẩm thực.';
-        table.innerHTML = taoDongTrong(7, emptyMessage);
-        return;
-    }
-
-    table.innerHTML = requests.map(request => {
-        const customer = customers.find(item => item.MaKH === request.MaKH);
-        const actionButton = taoNutYeuCauDichVu(request);
-
-        return `
-        <tr class="border-b hover:bg-gray-50 align-top">
-            <td class="p-3 font-bold">${escapeHTML(request.MaYC)}</td>
-            <td class="p-3">
-                <p class="font-bold text-dark">${escapeHTML(customer?.HoTen || 'Khách Ẩn Danh')}</p>
-                <p class="text-xs text-gray-500">${escapeHTML(customer?.SDT || '')}</p>
-                <p class="text-xs text-gray-500">${escapeHTML(customer?.Email || '')}</p>
-            </td>
-            <td class="p-3">
-                <p class="font-bold text-dark">${escapeHTML(tenDichVu(request))}</p>
-                ${request.GhiChu ? `<p class="text-xs text-gray-500 mt-1 max-w-xs">${escapeHTML(request.GhiChu)}</p>` : ''}
-            </td>
-            <td class="p-3 text-gray-500">${escapeHTML(request.NgaySuDung)}${request.GioSuDung ? `<br><span class="text-xs">Lúc ${escapeHTML(request.GioSuDung)}</span>` : ''}</td>
-            <td class="p-3 font-bold">${escapeHTML(request.SoKhach || 1)}</td>
-            <td class="p-3"><span class="px-2 py-1 rounded-full font-bold text-[10px] ${mauBadge(request.TrangThai)}">${escapeHTML(request.TrangThai)}</span></td>
-            <td class="p-3">${actionButton}</td>
-        </tr>`;
-    }).join('');
-}
-
-function taoNutYeuCauDichVu(request) {
-    if (!coQuyenLeTan()) {
-        return '<span class="text-gray-400 italic text-xs">Không có quyền xử lý</span>';
-    }
-
-    if (request.TrangThai === SERVICE_RECEIVED) {
-        return `
-        <div class="flex flex-col gap-2">
-            <button onclick="capNhatTrangThaiYeuCau('${request.MaYC}', '${SERVICE_CONFIRMED}')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-blue-700">Xác nhận</button>
-            <button onclick="capNhatTrangThaiYeuCau('${request.MaYC}', '${SERVICE_CANCELLED}')" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs border border-red-200 hover:bg-red-100">Từ chối</button>
-        </div>`;
-    }
-
-    if (request.TrangThai === SERVICE_CONFIRMED) {
-        return `
-        <div class="flex flex-col gap-2">
-            <button onclick="capNhatTrangThaiYeuCau('${request.MaYC}', '${SERVICE_DONE}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-green-700">Hoàn tất</button>
-            <button onclick="capNhatTrangThaiYeuCau('${request.MaYC}', '${SERVICE_CANCELLED}')" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs border border-red-200 hover:bg-red-100">Hủy</button>
-        </div>`;
-    }
-
-    return '<span class="text-gray-400 italic text-xs">Đã xử lý</span>';
-}
-
-function capNhatTrangThaiYeuCau(maYC, trangThaiMoi) {
-    const requests = docDuLieu('YeuCauDichVu');
-    const requestIndex = requests.findIndex(request => request.MaYC === maYC);
-    if (requestIndex < 0) return;
-
-    requests[requestIndex].TrangThai = trangThaiMoi;
-    requests[requestIndex].NgayCapNhat = new Date().toISOString();
-    requests[requestIndex].MaNVXuLy = currentStaff?.MaNV || '';
-    requests[requestIndex].TenNVXuLy = currentStaff?.HoTen || '';
-    luuDuLieu('YeuCauDichVu', requests);
-
-    alert(`Đã cập nhật yêu cầu ${maYC} sang trạng thái "${trangThaiMoi}".`);
     lamMoiTabHienTai();
 }
 
@@ -953,23 +798,16 @@ function xacNhanHoanTatSuCo(maSC) {
 function veBangKhachHang() {
     const customers = docDuLieu('KhachHang');
     const bookings = docDuLieu('PhieuDatPhong');
-    const requests = docDuLieu('YeuCauDichVu');
     const table = document.getElementById('table-customers');
 
     if (customers.length === 0) {
-        table.innerHTML = taoDongTrong(7, 'Chưa có khách hàng.');
+        table.innerHTML = taoDongTrong(5, 'Chưa có khách hàng.');
         return;
     }
 
     table.innerHTML = customers.map(customer => {
         const customerBookings = bookings.filter(booking => booking.MaKH === customer.MaKH);
-        const diningRequests = requests.filter(request => request.MaKH === customer.MaKH && request.LoaiDichVu === 'AM_THUC');
-        const eventRequests = requests.filter(request => request.MaKH === customer.MaKH && request.LoaiDichVu === 'SU_KIEN');
-        const dates = [
-            ...customerBookings.map(booking => booking.NgayTao),
-            ...diningRequests.map(request => request.NgayTao),
-            ...eventRequests.map(request => request.NgayTao)
-        ].filter(Boolean);
+        const dates = customerBookings.map(booking => booking.NgayTao).filter(Boolean);
         const latestDate = dates.length
             ? new Date(Math.max(...dates.map(date => new Date(date).getTime()))).toLocaleString('vi-VN')
             : 'Chưa phát sinh';
@@ -983,8 +821,6 @@ function veBangKhachHang() {
             </td>
             <td class="p-3 text-gray-500">${escapeHTML(customer.SDT || '')}<br><span class="text-xs">${escapeHTML(customer.Email || '')}</span></td>
             <td class="p-3 font-bold">${customerBookings.length}</td>
-            <td class="p-3 font-bold">${diningRequests.length}</td>
-            <td class="p-3 font-bold">${eventRequests.length}</td>
             <td class="p-3 text-gray-500">${escapeHTML(latestDate)}</td>
         </tr>`;
     }).join('');

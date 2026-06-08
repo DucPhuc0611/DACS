@@ -67,63 +67,6 @@ const DEFAULT_ROOMS = [
     { MaPhong: 'P502', MaLoaiPhong: 'LP_TWIN', TrangThaiVeSinh: ROOM_READY }
 ];
 
-const DEFAULT_DINING_SERVICES = [
-    {
-        MaDichVu: 'DINING_SIGNATURE',
-        TenDichVu: 'Signature Restaurant',
-        ViTri: 'Tầng 6',
-        GioPhucVu: '06:30 - 22:00',
-        GiaThamKhao: 45,
-        MoTa: 'Thực đơn Á - Âu theo mùa, phù hợp cho bữa sáng, bữa tối và tiếp khách thân mật.',
-        img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80'
-    },
-    {
-        MaDichVu: 'DINING_SKYBAR',
-        TenDichVu: 'Sky Lounge Bar',
-        ViTri: 'Rooftop',
-        GioPhucVu: '17:00 - 01:00',
-        GiaThamKhao: 30,
-        MoTa: 'Cocktail, rượu vang và set tapas trong không gian nhìn về trung tâm Sài Gòn.',
-        img: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=900&q=80'
-    },
-    {
-        MaDichVu: 'DINING_PRIVATE',
-        TenDichVu: 'Private Dining',
-        ViTri: 'Phòng riêng',
-        GioPhucVu: 'Theo lịch đặt',
-        GiaThamKhao: 120,
-        MoTa: 'Bàn tiệc riêng với thực đơn cá nhân hóa cho gia đình, đối tác hoặc dịp kỷ niệm.',
-        img: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80'
-    }
-];
-
-const DEFAULT_EVENT_PACKAGES = [
-    {
-        MaGoi: 'EVENT_MEETING',
-        TenGoi: 'Executive Meeting',
-        SucChua: 40,
-        GiaKhoiDiem: 500,
-        MoTa: 'Phòng họp riêng, màn hình trình chiếu, tea-break và hỗ trợ kỹ thuật trong suốt sự kiện.',
-        img: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=80'
-    },
-    {
-        MaGoi: 'EVENT_BANQUET',
-        TenGoi: 'Grand Banquet',
-        SucChua: 180,
-        GiaKhoiDiem: 2500,
-        MoTa: 'Không gian tiệc lớn cho gala dinner, tiệc cưới và tiệc doanh nghiệp với thực đơn trọn gói.',
-        img: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=80'
-    },
-    {
-        MaGoi: 'EVENT_ROOFTOP',
-        TenGoi: 'Rooftop Reception',
-        SucChua: 90,
-        GiaKhoiDiem: 1800,
-        MoTa: 'Tiệc cocktail trên tầng thượng, phù hợp cho ra mắt sản phẩm và networking buổi tối.',
-        img: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=900&q=80'
-    }
-];
-
 function docDuLieu(key, fallback = []) {
     try {
         return JSON.parse(localStorage.getItem(key)) ?? fallback;
@@ -141,9 +84,6 @@ function initDB() {
     if (!localStorage.getItem('LoaiPhong')) luuDuLieu('LoaiPhong', DEFAULT_ROOM_TYPES);
     if (!localStorage.getItem('Phong')) luuDuLieu('Phong', DEFAULT_ROOMS);
     if (!localStorage.getItem('PhieuDatPhong')) luuDuLieu('PhieuDatPhong', []);
-    if (!localStorage.getItem('DichVuAmThuc')) luuDuLieu('DichVuAmThuc', DEFAULT_DINING_SERVICES);
-    if (!localStorage.getItem('GoiSuKien')) luuDuLieu('GoiSuKien', DEFAULT_EVENT_PACKAGES);
-    if (!localStorage.getItem('YeuCauDichVu')) luuDuLieu('YeuCauDichVu', []);
 
     dongBoDuLieuMau();
 }
@@ -167,8 +107,6 @@ function dongBoDanhSachTheoKhoa(storageKey, defaults, idField) {
 function dongBoDuLieuMau() {
     dongBoDanhSachTheoKhoa('LoaiPhong', DEFAULT_ROOM_TYPES, 'MaLoaiPhong');
     dongBoDanhSachTheoKhoa('Phong', DEFAULT_ROOMS, 'MaPhong');
-    dongBoDanhSachTheoKhoa('DichVuAmThuc', DEFAULT_DINING_SERVICES, 'MaDichVu');
-    dongBoDanhSachTheoKhoa('GoiSuKien', DEFAULT_EVENT_PACKAGES, 'MaGoi');
 }
 
 // ==========================================
@@ -209,18 +147,6 @@ function coTrungLich(lichAStart, lichAEnd, lichBStart, lichBEnd) {
 
 function timLoaiPhong(maLoaiPhong) {
     return docDuLieu('LoaiPhong').find(roomType => roomType.MaLoaiPhong === maLoaiPhong);
-}
-
-function timDichVuAmThuc(maDichVu) {
-    return docDuLieu('DichVuAmThuc').find(service => service.MaDichVu === maDichVu);
-}
-
-function timGoiSuKien(maGoi) {
-    return docDuLieu('GoiSuKien').find(eventPackage => eventPackage.MaGoi === maGoi);
-}
-
-function timDichVuTheoLoai(loaiDichVu, maDichVu) {
-    return loaiDichVu === 'SU_KIEN' ? timGoiSuKien(maDichVu) : timDichVuAmThuc(maDichVu);
 }
 
 function phongBiGiuTrongKhoangNgay(maPhong, checkIn, checkOut, bookings = docDuLieu('PhieuDatPhong')) {
@@ -272,54 +198,6 @@ function renderRooms() {
             </div>
         </div>`;
     }).join('');
-}
-
-function renderDining() {
-    const container = document.getElementById('dining-list-container');
-    if (!container) return;
-
-    const services = docDuLieu('DichVuAmThuc');
-    container.innerHTML = services.map(service => `
-        <article class="bg-white border border-gray-100 shadow-sm">
-            <img src="${service.img}" alt="${service.TenDichVu}" loading="lazy" class="w-full h-72 object-cover">
-            <div class="p-7">
-                <p class="text-[10px] uppercase tracking-[0.2em] text-gold font-bold mb-3">${service.ViTri}</p>
-                <h4 class="text-2xl font-serif text-dark mb-3">${service.TenDichVu}</h4>
-                <p class="text-sm text-gray-500 leading-relaxed mb-5">${service.MoTa}</p>
-                <div class="flex justify-between gap-4 text-xs text-gray-500 border-t border-gray-100 pt-4 mb-6">
-                    <span>${service.GioPhucVu}</span>
-                    <span>Từ ${formatTien(service.GiaThamKhao)} / khách</span>
-                </div>
-                <button onclick="chuanBiYeuCauDichVu('AM_THUC', '${service.MaDichVu}')" class="uppercase tracking-[0.2em] text-[10px] font-bold text-dark border-b border-gold pb-1 hover:text-gold transition">
-                    Đặt Bàn
-                </button>
-            </div>
-        </article>
-    `).join('');
-}
-
-function renderEvents() {
-    const container = document.getElementById('event-list-container');
-    if (!container) return;
-
-    const packages = docDuLieu('GoiSuKien');
-    container.innerHTML = packages.map(eventPackage => `
-        <article class="border border-gray-100 shadow-sm bg-gray-50">
-            <img src="${eventPackage.img}" alt="${eventPackage.TenGoi}" loading="lazy" class="w-full h-72 object-cover">
-            <div class="p-7">
-                <p class="text-[10px] uppercase tracking-[0.2em] text-gold font-bold mb-3">Tối đa ${eventPackage.SucChua} khách</p>
-                <h4 class="text-2xl font-serif text-dark mb-3">${eventPackage.TenGoi}</h4>
-                <p class="text-sm text-gray-500 leading-relaxed mb-5">${eventPackage.MoTa}</p>
-                <div class="flex justify-between gap-4 text-xs text-gray-500 border-t border-gray-200 pt-4 mb-6">
-                    <span>Trọn gói sự kiện</span>
-                    <span>Từ ${formatTien(eventPackage.GiaKhoiDiem)}</span>
-                </div>
-                <button onclick="chuanBiYeuCauDichVu('SU_KIEN', '${eventPackage.MaGoi}')" class="uppercase tracking-[0.2em] text-[10px] font-bold text-dark border-b border-gold pb-1 hover:text-gold transition">
-                    Tư Vấn Sự Kiện
-                </button>
-            </div>
-        </article>
-    `).join('');
 }
 
 function moModal(id) {
@@ -466,14 +344,12 @@ function xuLyDangXuat() {
 function taiDuLieuProfile() {
     const user = docDuLieu('CurrentUser', null);
     const historyList = document.getElementById('history-list');
-    const serviceHistoryList = document.getElementById('service-history-list');
 
     if (!user) {
         if (document.getElementById('prof-name')) document.getElementById('prof-name').innerText = '---';
         if (document.getElementById('prof-phone')) document.getElementById('prof-phone').innerText = '---';
         if (document.getElementById('prof-email')) document.getElementById('prof-email').innerText = '---';
         if (historyList) historyList.innerHTML = '<p class="text-sm text-gray-400 italic mt-4">Vui lòng đăng nhập để xem lịch sử lưu trú.</p>';
-        if (serviceHistoryList) serviceHistoryList.innerHTML = '<p class="text-sm text-gray-400 italic">Vui lòng đăng nhập để xem yêu cầu dịch vụ.</p>';
         return;
     }
 
@@ -504,33 +380,6 @@ function taiDuLieuProfile() {
             </div>`;
         }).join('');
     }
-
-    const serviceRequests = docDuLieu('YeuCauDichVu')
-        .filter(request => request.MaKH === user.MaKH)
-        .reverse();
-
-    if (!serviceHistoryList) return;
-
-    if (serviceRequests.length === 0) {
-        serviceHistoryList.innerHTML = '<p class="text-sm text-gray-400 italic">Chưa có yêu cầu dịch vụ nào.</p>';
-        return;
-    }
-
-    serviceHistoryList.innerHTML = serviceRequests.map(request => {
-        const service = timDichVuTheoLoai(request.LoaiDichVu, request.MaDichVu);
-        const serviceName = request.TenDichVu || service?.TenDichVu || service?.TenGoi || 'Dịch vụ SSA';
-        const typeLabel = request.LoaiDichVu === 'SU_KIEN' ? 'Sự kiện' : 'Ẩm thực';
-
-        return `
-        <div class="bg-white p-4 border border-gray-100 flex justify-between items-center gap-4 mb-2">
-            <div>
-                <p class="font-serif text-lg text-dark">${serviceName}</p>
-                <p class="text-xs text-gray-500">${typeLabel} · ${request.NgaySuDung}${request.GioSuDung ? ` lúc ${request.GioSuDung}` : ''}</p>
-                <p class="text-xs text-gray-500">${request.SoKhach} khách${request.GhiChu ? ` · ${request.GhiChu}` : ''}</p>
-            </div>
-            <span class="shrink-0 text-[10px] font-bold uppercase text-gold border border-gold px-2 py-1">${request.TrangThai}</span>
-        </div>`;
-    }).join('');
 }
 
 // ==========================================
@@ -687,112 +536,6 @@ function xuLyDatPhong(e) {
     taiDuLieuProfile();
 }
 
-function chuanBiYeuCauDichVu(loaiDichVu, maDichVu) {
-    const user = docDuLieu('CurrentUser', null);
-    if (!user) {
-        alert('Vui lòng đăng nhập để gửi yêu cầu dịch vụ!');
-        moModal('login-modal');
-        return;
-    }
-
-    const service = timDichVuTheoLoai(loaiDichVu, maDichVu);
-    if (!service) {
-        alert('Không tìm thấy dịch vụ đã chọn.');
-        return;
-    }
-
-    const isEvent = loaiDichVu === 'SU_KIEN';
-    const serviceName = isEvent ? service.TenGoi : service.TenDichVu;
-    const today = new Date();
-    const defaultDate = new Date(today);
-    defaultDate.setDate(today.getDate() + (isEvent ? 7 : 1));
-
-    document.getElementById('service-type').value = loaiDichVu;
-    document.getElementById('service-id').value = maDichVu;
-    document.getElementById('service-modal-title').innerText = isEvent ? 'Tư Vấn Sự Kiện' : 'Đặt Bàn Ẩm Thực';
-    document.getElementById('service-modal-subtitle').innerText = serviceName;
-    document.getElementById('svc-name').value = user.HoTen;
-    document.getElementById('svc-phone').value = user.SDT;
-    document.getElementById('svc-email').value = user.Email;
-
-    const dateInput = document.getElementById('svc-date');
-    const timeInput = document.getElementById('svc-time');
-    const guestsInput = document.getElementById('svc-guests');
-    const guestsLabel = document.getElementById('svc-guests-label');
-
-    dateInput.min = formatNgayISO(today);
-    dateInput.value = formatNgayISO(defaultDate);
-    timeInput.value = isEvent ? '18:00' : '19:00';
-    guestsInput.min = '1';
-    guestsInput.max = isEvent ? String(service.SucChua || 300) : '20';
-    guestsInput.value = isEvent ? Math.min(30, service.SucChua || 30) : 2;
-    guestsLabel.innerText = isEvent ? `Số khách dự kiến * (tối đa ${service.SucChua || 300})` : 'Số khách *';
-    document.getElementById('svc-note').value = '';
-
-    moModal('service-modal');
-}
-
-function xuLyGuiYeuCauDichVu(e) {
-    e.preventDefault();
-
-    const user = docDuLieu('CurrentUser', null);
-    if (!user) {
-        alert('Phiên đăng nhập đã hết. Vui lòng đăng nhập lại!');
-        dongModal('service-modal');
-        moModal('login-modal');
-        return;
-    }
-
-    const loaiDichVu = document.getElementById('service-type').value;
-    const maDichVu = document.getElementById('service-id').value;
-    const service = timDichVuTheoLoai(loaiDichVu, maDichVu);
-    const date = document.getElementById('svc-date').value;
-    const time = document.getElementById('svc-time').value;
-    const guests = Number(document.getElementById('svc-guests').value || 1);
-    const note = document.getElementById('svc-note').value.trim();
-    const today = parseNgay(formatNgayISO(new Date()));
-
-    if (!service) {
-        alert('Không tìm thấy dịch vụ đã chọn.');
-        return;
-    }
-
-    if (parseNgay(date) < today) {
-        alert('Ngày sử dụng dịch vụ không được nhỏ hơn ngày hiện tại.');
-        return;
-    }
-
-    const maxGuests = loaiDichVu === 'SU_KIEN' ? (service.SucChua || 300) : 20;
-    if (guests < 1 || guests > maxGuests) {
-        alert(`Số khách phải từ 1 đến ${maxGuests}.`);
-        return;
-    }
-
-    const serviceName = loaiDichVu === 'SU_KIEN' ? service.TenGoi : service.TenDichVu;
-    const serviceRequests = docDuLieu('YeuCauDichVu');
-    const newRequest = {
-        MaYC: `YC${Date.now()}`,
-        MaKH: user.MaKH,
-        LoaiDichVu: loaiDichVu,
-        MaDichVu: maDichVu,
-        TenDichVu: serviceName,
-        NgaySuDung: date,
-        GioSuDung: time,
-        SoKhach: guests,
-        GhiChu: note,
-        NgayTao: new Date().toISOString(),
-        TrangThai: 'Đã tiếp nhận'
-    };
-
-    serviceRequests.push(newRequest);
-    luuDuLieu('YeuCauDichVu', serviceRequests);
-
-    alert(`ĐÃ GỬI YÊU CẦU THÀNH CÔNG!\n\nDịch vụ: ${serviceName}\nMã yêu cầu: ${newRequest.MaYC}\nNhân viên SSA Hotel sẽ liên hệ xác nhận chi tiết.`);
-    dongModal('service-modal');
-    document.getElementById('service-form').reset();
-    taiDuLieuProfile();
-}
-
 function ganSuKienForm() {
     document.getElementById('bk-checkin')?.addEventListener('change', () => {
         const checkInInput = document.getElementById('bk-checkin');
@@ -819,8 +562,6 @@ function ganSuKienForm() {
 window.addEventListener('DOMContentLoaded', () => {
     initDB();
     renderRooms();
-    renderDining();
-    renderEvents();
     checkLoginStatus();
     taiDuLieuProfile();
     ganSuKienForm();
