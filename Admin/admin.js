@@ -17,7 +17,8 @@ const INCIDENT_DONE = 'Quản lý xác nhận hoàn tất';
 
 let currentStaff = null;
 let activeTab = 'dashboard';
-const ADMIN_SESSION_KEY = 'CurrentAdmin';
+const ADMIN_SESSION_KEY = 'CurrentAdminTabSession';
+const LEGACY_ADMIN_SESSION_KEY = 'CurrentAdmin';
 
 const DEFAULT_CUSTOMERS = [
     {
@@ -85,12 +86,14 @@ function docPhienAdmin() {
 
 function luuPhienAdmin(staff) {
     sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(staff));
-    localStorage.removeItem(ADMIN_SESSION_KEY);
+    sessionStorage.removeItem(LEGACY_ADMIN_SESSION_KEY);
+    localStorage.removeItem(LEGACY_ADMIN_SESSION_KEY);
 }
 
 function xoaPhienAdmin() {
     sessionStorage.removeItem(ADMIN_SESSION_KEY);
-    localStorage.removeItem(ADMIN_SESSION_KEY);
+    sessionStorage.removeItem(LEGACY_ADMIN_SESSION_KEY);
+    localStorage.removeItem(LEGACY_ADMIN_SESSION_KEY);
 }
 
 function dongBoDanhSachTheoKhoa(storageKey, defaults, idField) {
