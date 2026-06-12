@@ -445,7 +445,7 @@ function veBangDatPhong() {
     const table = document.getElementById('table-bookings');
 
     if (bookings.length === 0) {
-        table.innerHTML = taoDongTrong(7, 'Chưa có booking nào từ website user.');
+        table.innerHTML = taoDongTrong(8, 'Chưa có booking nào từ website user.');
         return;
     }
 
@@ -466,6 +466,7 @@ function veBangDatPhong() {
                 <p class="text-xs text-gray-500">${escapeHTML(roomType?.TenLoai || 'Phòng SSA')}</p>
             </td>
             <td class="p-3 text-gray-500">${escapeHTML(booking.NgayNhanDuKien)} ➔ ${escapeHTML(booking.NgayTraDuKien)}<br><span class="text-xs">${escapeHTML(booking.SoDem || '')} đêm · ${escapeHTML(booking.SoKhach || 1)} khách</span></td>
+            <td class="p-3 text-sm text-gray-600 max-w-xs">${booking.GhiChu ? escapeHTML(booking.GhiChu) : ''}</td>
             <td class="p-3 font-bold text-dark">${formatTien(booking.TongTienDuKien)}</td>
             <td class="p-3"><span class="px-2 py-1 rounded-full font-bold text-[10px] ${mauBadge(booking.TrangThai)}">${escapeHTML(booking.TrangThai)}</span></td>
             <td class="p-3">${actionButton}</td>

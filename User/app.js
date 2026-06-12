@@ -165,6 +165,26 @@ function demPhongSanSang(maLoaiPhong) {
     return rooms.filter(room => room.MaLoaiPhong === maLoaiPhong && room.TrangThaiVeSinh === ROOM_READY).length;
 }
 
+function demPhongTrongKhoangNgay(maLoaiPhong, checkIn, checkOut) {
+    const rooms = docDuLieu('Phong');
+    const bookings = docDuLieu('PhieuDatPhong');
+    return rooms.filter(room => (
+        room.MaLoaiPhong === maLoaiPhong &&
+        room.TrangThaiVeSinh === ROOM_READY &&
+        !phongBiGiuTrongKhoangNgay(room.MaPhong, checkIn, checkOut, bookings)
+    )).length;
+}
+
+function timNhieuPhongTrong(maLoaiPhong, checkIn, checkOut, count) {
+    const rooms = docDuLieu('Phong');
+    const bookings = docDuLieu('PhieuDatPhong');
+    return rooms.filter(room => (
+        room.MaLoaiPhong === maLoaiPhong &&
+        room.TrangThaiVeSinh === ROOM_READY &&
+        !phongBiGiuTrongKhoangNgay(room.MaPhong, checkIn, checkOut, bookings)
+    )).slice(0, count);
+}
+
 // ==========================================
 // 3. GIAO DIEN & TAI KHOAN
 // ==========================================
@@ -375,6 +395,7 @@ function taiDuLieuProfile() {
                     <p class="font-serif text-lg text-dark">${roomType?.TenLoai || 'Phòng SSA'} (Phòng ${booking.MaPhong})</p>
                     <p class="text-xs text-gray-500">Nhận: ${booking.NgayNhanDuKien} - Trả: ${booking.NgayTraDuKien}</p>
                     <p class="text-xs text-gray-500">${nights} đêm · ${booking.SoKhach || 1} khách · Tổng dự kiến ${formatTien(total)}</p>
+                    ${booking.GhiChu ? `<p class="text-xs text-gray-500 mt-2">Ghi chú: ${booking.GhiChu}</p>` : ''}
                 </div>
                 <span class="shrink-0 text-[10px] font-bold uppercase text-gold border border-gold px-2 py-1">${booking.TrangThai}</span>
             </div>`;
@@ -408,6 +429,15 @@ function chuanBiDatPhong(maLoaiPhong) {
     document.getElementById('bk-name').value = user.HoTen;
     document.getElementById('bk-phone').value = user.SDT;
     document.getElementById('bk-email').value = user.Email;
+    document.getElementById('bk-note') && (document.getElementById('bk-note').value = '');
+    const roomsInput = document.getElementById('bk-rooms');
+    const roomsMaxField = document.getElementById('bk-rooms-max');
+    if (roomsInput) {
+        const avail = demPhongTrongKhoangNgay(maLoaiPhong, formatNgayISO(today), formatNgayISO(tomorrow));
+        roomsInput.value = 1;
+        roomsInput.max = Math.max(1, avail);
+        if (roomsMaxField) roomsMaxField.value = avail;
+    }
 
     const checkInInput = document.getElementById('bk-checkin');
     const checkOutInput = document.getElementById('bk-checkout');
@@ -440,13 +470,18 @@ function capNhatTomTatDatPhong() {
         return;
     }
 
-    const total = nights * Number(roomType.GiaTieuChuan || 0);
-    const deposit = Math.min(total, Math.max(100, Math.round(total * 0.2)));
+    const perRoomTotal = nights * Number(roomType.GiaTieuChuan || 0);
+    const roomsRequested = Number(document.getElementById('bk-rooms')?.value || 1);
+    const availableCount = demPhongTrongKhoangNgay(maLoaiPhong, checkIn, checkOut);
+    const roomsToUse = Math.min(Math.max(1, roomsRequested), Math.max(0, availableCount));
+    const totalAll = perRoomTotal * roomsToUse;
 
     document.getElementById('summary-nights').innerText = `${nights} đêm`;
     document.getElementById('summary-price').innerText = `${formatTien(roomType.GiaTieuChuan)} / đêm`;
-    document.getElementById('summary-total').innerText = formatTien(total);
-    document.getElementById('bk-deposit').value = deposit;
+    document.getElementById('summary-total').innerText = formatTien(totalAll);
+    document.getElementById('bk-deposit').value = Math.min(totalAll, Math.max(100, Math.round(totalAll * 0.2)));
+    document.getElementById('bk-rooms-max') && (document.getElementById('bk-rooms-max').value = availableCount);
+    document.getElementById('bk-rooms') && (document.getElementById('bk-rooms').max = Math.max(1, availableCount));
     summary.classList.remove('hidden');
 }
 
@@ -500,35 +535,43 @@ function xuLyDatPhong(e) {
         return;
     }
 
-    const availableRoom = timPhongTrong(maLoaiPhong, checkIn, checkOut);
-    if (!availableRoom) {
-        alert('Hạng phòng này đã hết phòng trống trong khoảng ngày đã chọn. Vui lòng đổi ngày hoặc chọn hạng khác!');
+    const roomsCount = Number(document.getElementById('bk-rooms')?.value || 1);
+    const availableRooms = timNhieuPhongTrong(maLoaiPhong, checkIn, checkOut, roomsCount);
+    if (!availableRooms || availableRooms.length < roomsCount) {
+        alert('Số lượng phòng yêu cầu vượt quá số phòng trống trong khoảng ngày đã chọn. Vui lòng giảm số phòng hoặc đổi ngày.');
         return;
     }
 
-    const total = nights * Number(roomType.GiaTieuChuan || 0);
+    const perRoomTotal = nights * Number(roomType.GiaTieuChuan || 0);
+    const totalAll = perRoomTotal * roomsCount;
     const deposit = Number(document.getElementById('bk-deposit').value || 0);
     const bookings = docDuLieu('PhieuDatPhong');
-    const newBooking = {
-        MaPDP: `PDP${Date.now()}`,
-        MaKH: user.MaKH,
-        MaLoaiPhong: maLoaiPhong,
-        MaPhong: availableRoom.MaPhong,
-        NgayNhanDuKien: checkIn,
-        NgayTraDuKien: checkOut,
-        SoKhach: guests,
-        SoDem: nights,
-        DonGia: Number(roomType.GiaTieuChuan || 0),
-        TienCoc: deposit,
-        TongTienDuKien: total,
-        NgayTao: new Date().toISOString(),
-        TrangThai: 'Chờ nhận phòng'
-    };
+    const note = String(document.getElementById('bk-note')?.value || '').trim();
 
-    bookings.push(newBooking);
+    availableRooms.forEach((room, idx) => {
+        const newBooking = {
+            MaPDP: `PDP${Date.now()}${idx}`,
+            MaKH: user.MaKH,
+            MaLoaiPhong: maLoaiPhong,
+            MaPhong: room.MaPhong,
+            NgayNhanDuKien: checkIn,
+            NgayTraDuKien: checkOut,
+            SoKhach: guests,
+            SoDem: nights,
+            DonGia: Number(roomType.GiaTieuChuan || 0),
+            TienCoc: Math.round(deposit / roomsCount),
+            GhiChu: note,
+            TongTienDuKien: perRoomTotal,
+            NgayTao: new Date().toISOString(),
+            TrangThai: 'Chờ nhận phòng'
+        };
+
+        bookings.push(newBooking);
+    });
+
     luuDuLieu('PhieuDatPhong', bookings);
 
-    alert(`ĐẶT PHÒNG THÀNH CÔNG!\n\nHệ thống đã giữ mã phòng ${availableRoom.MaPhong}.\nMã phiếu: ${newBooking.MaPDP}\nSố đêm: ${nights}\nTổng dự kiến: ${formatTien(total)}\nTiền cọc: ${formatTien(deposit)}`);
+    alert(`ĐẶT PHÒNG THÀNH CÔNG!\n\nHệ thống đã giữ ${roomsCount} phòng.\nMã tham chiếu (ví dụ): PDP${Date.now()}\nSố đêm: ${nights}\nTổng dự kiến: ${formatTien(totalAll)}\nTiền cọc: ${formatTien(deposit)}`);
     dongModal('booking-modal');
     document.getElementById('booking-form').reset();
     document.getElementById('booking-summary')?.classList.add('hidden');
