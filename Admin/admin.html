@@ -4,18 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Quản Trị | SSA Hotel PMS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Lato', 'sans-serif'], serif: ['Playfair Display', 'serif'] },
-                    colors: { gold: '#C5A059', dark: '#111111', panel: '#1e293b' }
+                    fontFamily: { sans: ['Inter', 'sans-serif'], serif: ['Playfair Display', 'serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f9fafb',
+                            100: '#f3f6f9',
+                            300: '#a8b3c6',
+                            500: '#0b1226',
+                            700: '#071026'
+                        },
+                        gold: '#C5A059',
+                        dark: '#0b1226',
+                        panel: '#0f1724'
+                    }
                 }
             }
         }
     </script>
+    <style>
+        /* Small premium design tweaks */
+        :root { color-scheme: light; }
+        body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+        aside { background: linear-gradient(180deg,#0f1724 0%, #0b1226 100%); }
+        .brand { font-family: 'Playfair Display', serif; color: #C5A059; letter-spacing: 0.12em; }
+        .card { box-shadow: 0 6px 18px rgba(11,17,38,0.08); border-radius: 12px; }
+        table thead th { background: #f8fafc; }
+        .btn-primary { background: linear-gradient(90deg,#0b1226,#071026); color: white; }
+        .sidebar-btn { transition: background .18s ease, transform .08s ease; }
+        .sidebar-btn:hover { transform: translateX(4px); }
+        @media (max-width: 900px) { aside { width: 56px; } main { margin-left:56px; } }
+    </style>
 </head>
 <body class="bg-gray-100 flex h-screen overflow-hidden font-sans text-gray-800">
 
@@ -49,11 +73,11 @@
         </div>
         
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto text-sm font-medium" id="sidebar-menu">
-            <button onclick="chuyenTab('dashboard')" class="role-all w-full text-left p-3 hover:bg-gray-700 rounded transition bg-gray-700 text-white" id="btn-dashboard">📊 Dashboard</button>
-            <button onclick="chuyenTab('rooms')" class="role-all w-full text-left p-3 hover:bg-gray-700 rounded transition bg-gray-700 text-white" id="btn-rooms">🏨 Sơ Đồ Phòng</button>
-            <button onclick="chuyenTab('bookings')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-bookings">📝 Quản Lý Lưu Trú</button>
-            <button onclick="chuyenTab('technical')" class="role-letan role-kythuat role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-technical">🛠️ Kỹ Thuật</button>
-            <button onclick="chuyenTab('customers')" class="role-letan role-admin w-full text-left p-3 hover:bg-gray-700 rounded transition hidden" id="btn-customers">👥 Khách Hàng</button>
+            <button onclick="chuyenTab('dashboard')" class="role-all w-full text-left p-3 hover:bg-opacity-95 rounded transition sidebar-btn text-white" id="btn-dashboard">Dashboard</button>
+            <button onclick="chuyenTab('rooms')" class="role-all w-full text-left p-3 hover:bg-opacity-95 rounded transition sidebar-btn text-white" id="btn-rooms">Sơ Đồ Phòng</button>
+            <button onclick="chuyenTab('bookings')" class="role-letan role-admin w-full text-left p-3 hover:bg-opacity-95 rounded transition sidebar-btn hidden text-white" id="btn-bookings">Quản Lý Lưu Trú</button>
+            <button onclick="chuyenTab('technical')" class="role-letan role-kythuat role-admin w-full text-left p-3 hover:bg-opacity-95 rounded transition sidebar-btn hidden text-white" id="btn-technical">Kỹ Thuật</button>
+            <button onclick="chuyenTab('customers')" class="role-letan role-admin w-full text-left p-3 hover:bg-opacity-95 rounded transition sidebar-btn hidden text-white" id="btn-customers">Khách Hàng</button>
         </nav>
 
         <div class="p-4 bg-gray-900 border-t border-gray-700">
@@ -67,11 +91,14 @@
 
     <main class="flex-1 flex flex-col overflow-hidden bg-gray-50 relative">
         <header class="bg-white shadow-sm px-8 py-4 flex justify-between items-center z-10">
-            <h2 id="page-title" class="text-2xl font-serif font-bold text-dark">Dashboard</h2>
-            <div id="header-actions" class="flex gap-3 text-xs font-bold uppercase tracking-wider">
-                <span class="px-2 py-1 bg-green-100 text-green-700 rounded border border-green-200">🟢 Sẵn Sàng</span>
-                <span class="px-2 py-1 bg-red-100 text-red-700 rounded border border-red-200">🔴 Đang Dùng</span>
-                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded border border-yellow-200">🟡 Chưa Dọn</span>
+            <div class="flex items-center gap-4">
+                <div class="brand text-2xl">SSA PMS</div>
+                <h2 id="page-title" class="text-lg font-medium text-gray-700">Dashboard</h2>
+            </div>
+            <div id="header-actions" class="flex gap-3 items-center">
+                <div class="px-3 py-1 rounded border border-gray-200 text-sm text-gray-600">Sẵn sàng: <strong id="stat-ready-mini" class="text-green-600 ml-1">0</strong></div>
+                <div class="px-3 py-1 rounded border border-gray-200 text-sm text-gray-600">Đang dùng: <strong id="stat-using-mini" class="text-red-600 ml-1">0</strong></div>
+                <button onclick="lamMoiTabHienTai()" class="ml-3 px-3 py-2 bg-dark text-white rounded text-sm hover:bg-gold transition">Làm mới</button>
             </div>
         </header>
 
@@ -209,14 +236,14 @@
             <div id="tab-customers" class="hidden bg-white shadow rounded p-6">
                 <h3 class="text-lg font-bold mb-4 text-dark border-b pb-2">Khách hàng liên kết với booking lưu trú</h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm min-w-[900px]">
-                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-white text-gray-600 uppercase text-xs border-b">
                             <tr>
                                 <th class="p-3">Mã KH</th>
                                 <th class="p-3">Họ Tên</th>
                                 <th class="p-3">Liên Hệ</th>
-                                <th class="p-3">Lưu Trú</th>
-                                <th class="p-3">Lần Gần Nhất</th>
+                                <th class="p-3">Ghi chú</th>
+                                <th class="p-3">Tổng Tiền</th>
                             </tr>
                         </thead>
                         <tbody id="table-customers"></tbody>
