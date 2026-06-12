@@ -22,24 +22,53 @@ const DEFAULT_ROOM_TYPES = [
         TenLoai: 'Phòng Tiêu Chuẩn King',
         GiaTieuChuan: 150,
         SucChua: 2,
-        MoTa: 'Giường King, vòi sen đứng, máy sấy Dyson và hệ thống phòng thông minh.',
-        img: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80'
+        MoTa: 'Phòng King sang trọng với giường lớn, không gian ấm cúng và tầm nhìn thành phố. Thích hợp cho cặp đôi và khách công tác ngắn ngày.',
+        DienTich: '34 m²',
+        TienNghi: [
+            'Giường King cao cấp',
+            'Vòi sen đứng áp lực lớn',
+            'Máy sấy tóc Dyson',
+            'Smart TV 50"',
+            'Mini bar và két an toàn',
+            'Bàn làm việc',
+            'Wifi tốc độ cao'
+        ],
+        img: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1600&q=80'
     },
     {
         MaLoaiPhong: 'LP_TWIN',
         TenLoai: 'Phòng Cao Cấp Twin',
         GiaTieuChuan: 280,
         SucChua: 4,
-        MoTa: 'Hai giường Twin, không gian làm việc riêng và tầm nhìn trung tâm thành phố.',
-        img: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80'
+        MoTa: 'Phòng Twin rộng rãi, hai giường độc lập, phù hợp gia đình nhỏ hoặc nhóm bạn.',
+        DienTich: '42 m²',
+        TienNghi: [
+            'Hai giường Twin thoải mái',
+            'Bàn làm việc riêng',
+            'Tủ lạnh mini',
+            'TV LED 48"',
+            'Bàn ăn nhỏ',
+            'Phòng tắm với bồn và vòi sen'
+        ],
+        img: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80'
     },
     {
         MaLoaiPhong: 'LP_SUITE',
         TenLoai: 'SSA Executive Suite',
         GiaTieuChuan: 850,
         SucChua: 6,
-        MoTa: 'Suite riêng tư với phòng khách, minibar cao cấp và dịch vụ ưu tiên.',
-        img: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=800&q=80'
+        MoTa: 'Executive Suite cao cấp với phòng khách riêng, khu vực tiếp khách và các tiện ích VIP, phù hợp khách VIP hoặc đoàn gia đình.',
+        DienTich: '85 m²',
+        TienNghi: [
+            'Phòng khách riêng',
+            'Minibar cao cấp',
+            'Dịch vụ phòng 24/7',
+            'Bồn tắm nằm + vòi sen riêng',
+            'Hệ thống âm thanh Bose',
+            'Bàn làm việc lớn',
+            'Két sắt cỡ lớn'
+        ],
+        img: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1600&q=80'
     }
 ];
 
@@ -200,7 +229,7 @@ function renderRooms() {
         return `
         <div class="group cursor-pointer">
             <div class="overflow-hidden relative shadow-sm">
-                <img src="${roomType.img}" alt="${roomType.TenLoai}" loading="lazy" class="w-full h-[450px] object-cover transition duration-1000 group-hover:scale-105">
+                <img onclick="openRoomModal('${roomType.MaLoaiPhong}')" src="${roomType.img}" alt="${roomType.TenLoai}" loading="lazy" class="w-full h-[450px] object-cover transition duration-1000 group-hover:scale-105 cursor-pointer">
             </div>
             <div class="pt-6 text-center">
                 <h4 class="text-2xl font-serif text-dark mb-2">${roomType.TenLoai}</h4>
@@ -208,13 +237,9 @@ function renderRooms() {
                     Giá: <span class="font-sans font-bold text-dark">${formatTien(roomType.GiaTieuChuan)}</span> / Đêm
                 </p>
                 <p class="text-xs text-gray-400 mb-4">Sức chứa ${roomType.SucChua || 2} khách · ${availableCount} phòng sẵn sàng</p>
-                <button
-                    onclick="chuanBiDatPhong('${roomType.MaLoaiPhong}')"
-                    ${disabled ? 'disabled' : ''}
-                    class="uppercase tracking-[0.2em] text-[10px] font-bold border-b pb-1 transition ${disabled ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-dark border-gold hover:text-gold'}"
-                >
-                    ${disabled ? 'Tạm Hết Phòng' : 'Đặt Ngay'}
-                </button>
+                <div class="mt-3 flex justify-center gap-4">
+                    <button onclick="chuanBiDatPhong('${roomType.MaLoaiPhong}')" ${disabled ? 'disabled' : ''} class="uppercase tracking-[0.2em] text-[10px] font-bold border-b pb-1 transition ${disabled ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-dark border-gold hover:text-gold'}">${disabled ? 'Tạm Hết Phòng' : 'Đặt Ngay'}</button>
+                </div>
             </div>
         </div>`;
     }).join('');
@@ -577,6 +602,83 @@ function xuLyDatPhong(e) {
     document.getElementById('booking-summary')?.classList.add('hidden');
     renderRooms();
     taiDuLieuProfile();
+}
+
+// =============================
+// Room detail modal & carousel
+// =============================
+const roomModalState = { images: [], idx: 0, currentType: null };
+
+function escapeHTML(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function openRoomModal(maLoaiPhong) {
+    const roomType = timLoaiPhong(maLoaiPhong);
+    if (!roomType) return alert('Không tìm thấy hạng phòng');
+
+    const imgs = Array.isArray(roomType.img) ? roomType.img : String(roomType.img || '').split(',').map(s => s.trim()).filter(Boolean);
+    roomModalState.images = imgs.length ? imgs : [''];
+    roomModalState.idx = 0;
+    roomModalState.currentType = roomType;
+
+    document.getElementById('detail-room-name').innerText = roomType.TenLoai || '';
+    document.getElementById('detail-room-price').innerText = formatTien(roomType.GiaTieuChuan || 0);
+    document.getElementById('detail-room-cap').innerText = roomType.SucChua || 1;
+    document.getElementById('detail-room-area').innerText = roomType.DienTich ? `Diện tích: ${escapeHTML(roomType.DienTich)}` : 'Diện tích: -';
+    document.getElementById('detail-room-short').innerText = roomType.MoTa || '';
+
+    updateRoomModalImages();
+
+    // populate amenities (use provided list or fallback)
+    const amenitiesEl = document.getElementById('detail-room-amenities');
+    const defaultAmenities = ['Khu vực làm việc', 'TV màn hình', 'Bàn làm việc', 'Tủ lạnh', 'Máy sấy tóc', 'Wi-Fi miễn phí', 'Két sắt', 'Loa Bluetooth'];
+    const amenities = Array.isArray(roomType.TienNghi) && roomType.TienNghi.length ? roomType.TienNghi : defaultAmenities;
+    amenitiesEl.innerHTML = amenities.map(a => `<li>${escapeHTML(a)}</li>`).join('');
+
+    // fetch extended description from internet (fallback to MoTa)
+    const longEl = document.getElementById('detail-room-long');
+    longEl.innerHTML = '<p class="text-xs text-gray-400">Đang tải nội dung mở rộng...</p>';
+    fetch('https://loripsum.net/api/2/short/plaintext').then(r => {
+        if (!r.ok) throw new Error('fetch failed');
+        return r.text();
+    }).then(txt => {
+        longEl.innerHTML = `<p>${escapeHTML(txt.trim())}</p>`;
+    }).catch(() => {
+        longEl.innerHTML = `<p>${escapeHTML(roomType.MoTa || 'Không có mô tả chi tiết.')}</p>`;
+    });
+
+    moModal('room-detail-modal');
+}
+
+function updateRoomModalImages() {
+    const imgs = roomModalState.images;
+    const idx = roomModalState.idx || 0;
+    const main = document.getElementById('detail-main-img');
+    const thumbs = document.getElementById('detail-thumbnails');
+    if (main) main.src = imgs[idx] || '';
+    if (thumbs) {
+        thumbs.innerHTML = imgs.map((u, i) => `
+            <img src="${escapeHTML(u)}" onclick="(function(){roomModalState.idx=${i}; updateRoomModalImages();})();" class="w-20 h-14 object-cover rounded cursor-pointer border ${i===idx ? 'border-gold' : 'border-gray-200'}">`
+        ).join('');
+    }
+}
+
+function roomCarouselNext() {
+    if (!roomModalState.images.length) return;
+    roomModalState.idx = (roomModalState.idx + 1) % roomModalState.images.length;
+    updateRoomModalImages();
+}
+
+function roomCarouselPrev() {
+    if (!roomModalState.images.length) return;
+    roomModalState.idx = (roomModalState.idx - 1 + roomModalState.images.length) % roomModalState.images.length;
+    updateRoomModalImages();
 }
 
 function ganSuKienForm() {

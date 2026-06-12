@@ -237,6 +237,43 @@
         </div>
     </div>
 
+    <!-- Room detail modal -->
+    <div id="room-detail-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-start z-50 overflow-y-auto py-12">
+        <div class="bg-white w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden">
+            <div class="relative">
+                <button onclick="dongModal('room-detail-modal')" class="absolute right-4 top-4 z-30 bg-white rounded-full w-10 h-10 flex items-center justify-center text-2xl">&times;</button>
+                <div class="relative h-80 md:h-96 bg-gray-100">
+                    <img id="detail-main-img" src="" alt="" class="w-full h-full object-cover">
+                    <button onclick="roomCarouselPrev()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2">&#10094;</button>
+                    <button onclick="roomCarouselNext()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2">&#10095;</button>
+                </div>
+                <div id="detail-thumbnails" class="flex gap-2 p-4 overflow-x-auto bg-white">
+                    <!-- thumbnails inserted here -->
+                </div>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1">
+                    <h3 id="detail-room-name" class="text-2xl font-serif text-dark mb-2"></h3>
+                    <p id="detail-room-short" class="text-sm text-gray-600 mb-3"></p>
+                    <p class="text-sm text-gray-500 mb-2" id="detail-room-area">Diện tích: -</p>
+                    <p class="text-sm text-gray-500 mb-2"><strong>Giá:</strong> <span id="detail-room-price">$0</span></p>
+                    <p class="text-sm text-gray-500"><strong>Sức chứa:</strong> <span id="detail-room-cap">0</span> khách</p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <h4 class="text-lg font-medium text-dark mb-2">Tiện nghi trong phòng</h4>
+                    <ul id="detail-room-amenities" class="list-disc columns-2 text-sm text-gray-600 mb-4">
+                        <!-- amenities here -->
+                    </ul>
+
+                    <h4 class="text-lg font-medium text-dark mb-2">Mô tả chi tiết</h4>
+                    <div id="detail-room-long" class="text-sm text-gray-600 space-y-2">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-dark text-white py-12 text-center text-xs tracking-widest font-light">
         <p class="mb-2 uppercase font-bold text-gold">SSA HOTEL MANAGEMENT</p>
         <p class="opacity-50">© 2026 Đồ Án Cơ Sở - Khoa CNTT. All rights reserved.</p>
